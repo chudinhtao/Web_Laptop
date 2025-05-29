@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ProductTypesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post('/upload', [UploadController    ::class, 'upload']);
+
+
+Route::apiResource('product_types', ProductTypesController::class);
+
 //Giỏ hàng  trang chủ
 Route::get('/products', [Home_client::class, 'getByLoai']);
 Route::get('/products_mouse', [Home_client::class, 'getAccessory']);
@@ -33,3 +38,4 @@ Route::get('/cart/{userId}', [CartController::class, 'getCartByUser']);
 Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 Route::post('/orders', [OrderController::class, 'store']);
+
