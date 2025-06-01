@@ -26,6 +26,28 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+
+        .form-animate.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .btn-animate, .btn-register-animate {
+            transition: 
+                background 0.4s cubic-bezier(.4,0,.2,1),
+                box-shadow 0.3s cubic-bezier(.4,0,.2,1),
+                transform 0.2s cubic-bezier(.4,0,.2,1);
+        }
+        .btn-animate:hover {
+            box-shadow: 0 8px 24px 0 rgba(59,130,246,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.10);
+            transform: translateY(-2px) scale(1.03);
+            filter: brightness(1.1) saturate(1.2);
+        }
+        .btn-register-animate:hover {
+            box-shadow: 0 8px 24px 0 rgba(16,185,129,0.18), 0 1.5px 4px 0 rgba(0,0,0,0.10);
+            transform: translateY(-2px) scale(1.03);
+            filter: brightness(1.1) saturate(1.2);
+        }
     </style>
     <script src="../js/layout.js"></script>
 </head>
