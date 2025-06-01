@@ -7,6 +7,7 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductTypesController;
+use App\Http\Controllers\LoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,3 +40,5 @@ Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 Route::post('/orders', [OrderController::class, 'store']);
 
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout']);
