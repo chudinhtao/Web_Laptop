@@ -10,7 +10,7 @@ use App\Http\Controllers\Api\ProductTypesController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RegisterController;
-
+use App\Http\Controllers\ThongkeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,4 +56,7 @@ Route::get('/users/{id}', [UserController::class, 'show']);
 Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+// Thống kê 
+Route::get('/thongke', [ThongkeController::class, 'dashboard']);
 

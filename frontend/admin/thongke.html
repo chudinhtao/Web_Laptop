@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thống kê doanh nghiệp Laptop</title>
+    <title>Thống kê Laptop</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -36,7 +36,6 @@
     <div class="container mx-auto py-8">
         <h1 class="text-3xl font-bold text-blue-700 mb-8 text-center">Thống kê tổng quan</h1>
         
-        <!-- Bảng tổng hợp doanh thu và đơn hàng -->
         <div class="bg-white rounded-lg shadow p-6 mb-8">
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Bảng tổng hợp</h2>
             <table class="min-w-full divide-y divide-gray-200">
@@ -51,41 +50,38 @@
                 <tbody>
                     <tr>
                         <td class="px-4 py-2">Tổng doanh thu</td>
-                        <td class="px-4 py-2">1.250.000.000₫</td>
-                        <td class="px-4 py-2">1.100.000.000₫</td>
-                        <td class="px-4 py-2 text-green-600 font-bold">+13.6%</td>
+                        <td class="px-4 py-2">0₫</td>
+                        <td class="px-4 py-2">0₫</td>
+                        <td class="px-4 py-2 text-green-600 font-bold">+0.0%</td>
                     </tr>
                     <tr>
                         <td class="px-4 py-2">Số đơn hàng</td>
-                        <td class="px-4 py-2">120</td>
-                        <td class="px-4 py-2">105</td>
-                        <td class="px-4 py-2 text-green-600 font-bold">+14.3%</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2 text-green-600 font-bold">+0.0%</td>
                     </tr>
                     <tr>
                         <td class="px-4 py-2">Khách hàng mới</td>
-                        <td class="px-4 py-2">98</td>
-                        <td class="px-4 py-2">90</td>
-                        <td class="px-4 py-2 text-green-600 font-bold">+8.9%</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2 text-green-600 font-bold">+0.0%</td>
                     </tr>
                     <tr>
                         <td class="px-4 py-2">Đơn bị hủy</td>
-                        <td class="px-4 py-2">5</td>
-                        <td class="px-4 py-2">3</td>
-                        <td class="px-4 py-2 text-red-600 font-bold">+66.7%</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2">0</td>
+                        <td class="px-4 py-2 text-red-600 font-bold">0.0%</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Bố cục 2 chart cạnh nhau trên desktop, dọc trên mobile -->
         <div class="charts-flex mb-8">
-            <!-- Chart doanh thu theo tháng -->
             <div class="bg-white rounded-lg shadow p-6 mb-8 chart-container">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Biểu đồ doanh thu 6 tháng gần nhất</h2>
                 <canvas id="revenueChart" width="600" height="320"></canvas>
             </div>
 
-            <!-- Chart trạng thái đơn hàng -->
             <div class="bg-white rounded-lg shadow p-6 mb-8 chart-container">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Tỉ lệ trạng thái đơn hàng tháng này</h2>
                 <div class="flex justify-center">
@@ -95,63 +91,115 @@
         </div>
     </div>
     <script>
-const revenueCanvas = document.getElementById('revenueChart');
-if (revenueCanvas) {
-    const revenueCtx = revenueCanvas.getContext('2d');
-    new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: ['Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8'],
-            datasets: [{
-                label: 'Doanh thu (triệu đồng)',
-                data: [900, 1100, 950, 1200, 1100, 1250],
-                borderColor: '#2563eb',
-                backgroundColor: 'rgba(37,99,235,0.1)',
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { callback: value => value + 'tr' }
+async function fetchDashboard() {
+    try {
+        const res = await fetch('http://localhost:8000/api/thongke');
+        const data = await res.json();
+
+        const summary = data.summary;
+        const formatMoney = n => Number(n).toLocaleString('vi-VN') + '₫';
+        const percent = (now, prev) => prev == 0 ? 'N/A' : ((now - prev) / prev * 100).toFixed(1) + '%';
+        const percentClass = (now, prev) => now >= prev ? 'text-green-600' : 'text-red-600';
+
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = `
+            <tr>
+                <td class="px-4 py-2">Tổng doanh thu</td>
+                <td class="px-4 py-2">${formatMoney(summary.revenue_now)}</td>
+                <td class="px-4 py-2">${formatMoney(summary.revenue_prev)}</td>
+                <td class="px-4 py-2 font-bold ${percentClass(summary.revenue_now, summary.revenue_prev)}">
+                    ${(summary.revenue_prev == 0) ? 'N/A' : ((summary.revenue_now - summary.revenue_prev) / summary.revenue_prev * 100 > 0 ? '+' : '') + percent(summary.revenue_now, summary.revenue_prev)}
+                </td>
+            </tr>
+            <tr>
+                <td class="px-4 py-2">Số đơn hàng</td>
+                <td class="px-4 py-2">${summary.orders_now}</td>
+                <td class="px-4 py-2">${summary.orders_prev}</td>
+                <td class="px-4 py-2 font-bold ${percentClass(summary.orders_now, summary.orders_prev)}">
+                    ${(summary.orders_prev == 0) ? 'N/A' : ((summary.orders_now - summary.orders_prev) / summary.orders_prev * 100 > 0 ? '+' : '') + percent(summary.orders_now, summary.orders_prev)}
+                </td>
+            </tr>
+            <tr>
+                <td class="px-4 py-2">Khách hàng mới</td>
+                <td class="px-4 py-2">${summary.customers_now}</td>
+                <td class="px-4 py-2">${summary.customers_prev}</td>
+                <td class="px-4 py-2 font-bold ${percentClass(summary.customers_now, summary.customers_prev)}">
+                    ${(summary.customers_prev == 0) ? 'N/A' : ((summary.customers_now - summary.customers_prev) / summary.customers_prev * 100 > 0 ? '+' : '') + percent(summary.customers_now, summary.customers_prev)}
+                </td>
+            </tr>
+            <tr>
+                <td class="px-4 py-2">Đơn bị hủy</td>
+                <td class="px-4 py-2">${summary.cancel_now}</td>
+                <td class="px-4 py-2">${summary.cancel_prev}</td>
+                <td class="px-4 py-2 font-bold ${percentClass(summary.cancel_now, summary.cancel_prev)}">
+                    ${(summary.cancel_prev == 0) ? 'N/A' : ((summary.cancel_now - summary.cancel_prev) / summary.cancel_prev * 100 > 0 ? '+' : '') + percent(summary.cancel_now, summary.cancel_prev)}
+                </td>
+            </tr>
+        `;
+
+        const revenueCanvas = document.getElementById('revenueChart');
+        if (revenueCanvas) {
+            const revenueCtx = revenueCanvas.getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: data.revenue_chart.labels,
+                    datasets: [{
+                        label: 'Doanh thu (triệu đồng)',
+                        data: data.revenue_chart.data,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37,99,235,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: value => value + 'tr' }
+                        }
+                    }
                 }
-            }
+            });
         }
-    });
+
+        const orderStatusCanvas = document.getElementById('orderStatusChart');
+        if (orderStatusCanvas) {
+            const orderStatusCtx = orderStatusCanvas.getContext('2d');
+            new Chart(orderStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã xác nhận', 'Đang giao', 'Đã giao', 'Đã hủy'],
+                    datasets: [{
+                        data: data.order_status_chart.data,
+                        backgroundColor: [
+                            '#2563eb', 
+                            '#fbbf24', 
+                            '#22c55e', 
+                            '#6b7280', 
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        alert('Không thể tải dữ liệu thống kê!');
+        console.error(e);
+    }
 }
 
-const orderStatusCanvas = document.getElementById('orderStatusChart');
-if (orderStatusCanvas) {
-    const orderStatusCtx = orderStatusCanvas.getContext('2d');
-    new Chart(orderStatusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Đã xác nhận', 'Đang giao', 'Đã giao', 'Đã hủy', 'Đã trả hàng'],
-            datasets: [{
-                data: [80, 25, 10, 5, 0],
-                backgroundColor: [
-                    '#2563eb', // blue
-                    '#fbbf24', // yellow
-                    '#22c55e', // green
-                    '#6b7280', // gray
-                    '#ef4444'  // red
-                ]
-            }]
-        },
-        options: {
-            responsive: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
+fetchDashboard();
 </script>
 </body>
 </html>
