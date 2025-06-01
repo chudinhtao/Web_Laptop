@@ -45,4 +45,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function newUserCount($month, $year)
+    {
+        return self::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->where('role', 'user')
+            ->count();
+    }
 }
