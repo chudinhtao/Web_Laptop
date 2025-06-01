@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Home_client;
-use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,9 +41,4 @@ Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 Route::post('/orders', [OrderController::class, 'store']);
 
-Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
-// API cập nhật trạng thái đơn hàng cho admin
-Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateStatus']);
-// API đơn hàng cho admin
-use App\Http\Controllers\OrderAdminController;
-Route::get('/admin/orders', [OrderAdminController::class, 'index']);
+
