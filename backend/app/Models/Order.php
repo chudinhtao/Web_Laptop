@@ -16,7 +16,11 @@ class Order extends Model
         'fullName',
         'phone',
         'address',
-        'orderstatus',
+
+        'orderstatus', // Thêm dòng này để cho phép cập nhật trạng thái
+
+     
+
     ];
 
     public static function revenue($month, $year)
@@ -48,6 +52,6 @@ class Order extends Model
     }
 
     public function details() {
-    return $this->hasMany(Order_detail::class);
+    return $this->hasMany(Order_detail::class, 'orderID');
 }
 }
