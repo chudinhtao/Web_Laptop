@@ -7,8 +7,19 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductTypesController;
+
 use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\Api\BrandsController;  
+
+
+use App\Http\Controllers\BrandsController;
+
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\ThongkeController;
+
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -23,6 +34,7 @@ use App\Http\Controllers\Api\BrandsController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
 Route::post('/upload', [UploadController ::class, 'upload']);
 
 Route::apiResource('product_types', ProductTypesController::class);
@@ -39,5 +51,26 @@ Route::get('/cart/{userId}', [CartController::class, 'getCartByUser']);
 Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 Route::post('/orders', [OrderController::class, 'store']);
+
+
+
+Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
+
+//Login/Logout
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout']);
+
+//Register
+Route::post('/register', [RegisterController::class, 'register']);
+
+//Users
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::post('/users', [UserController::class, 'store']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+// Thống kê 
+Route::get('/thongke', [ThongkeController::class, 'dashboard']);
 
 
