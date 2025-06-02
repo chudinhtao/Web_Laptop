@@ -7,10 +7,14 @@ use App\Http\Controllers\UploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductTypesController;
+
+use App\Http\Controllers\BrandsController;
+
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ThongkeController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +47,9 @@ Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 Route::post('/orders', [OrderController::class, 'store']);
 
+
+Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
+
 //Login/Logout
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout']);
@@ -59,4 +66,5 @@ Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Thống kê 
 Route::get('/thongke', [ThongkeController::class, 'dashboard']);
+
 
