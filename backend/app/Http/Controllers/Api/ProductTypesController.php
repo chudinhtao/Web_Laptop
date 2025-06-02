@@ -1,23 +1,24 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product_types;
+use App\Models\Product_Types; // Đổi thành ProductType
 use Illuminate\Http\Request;
 
 class ProductTypesController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Hiển thị danh sách loại sản phẩm.
      */
     public function index()
     {
-        return Product_types::all();
+        return Product_Types::all();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Thêm loại sản phẩm mới.
      */
     public function store(Request $request)
     {
@@ -25,7 +26,7 @@ class ProductTypesController extends Controller
             'typeName' => 'required|string|max:255',
         ]);
 
-        $loai = Product_types::create([
+        $loai = Product_Types::create([
             'typeName' => $request->typeName,
         ]);
 
@@ -33,11 +34,11 @@ class ProductTypesController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Hiển thị chi tiết loại sản phẩm.
      */
     public function show($id)
     {
-        $loai = Product_types::find($id);
+        $loai = Product_Types::find($id);
         if (!$loai) {
             return response()->json(['message' => 'Không tìm thấy loại sản phẩm'], 404);
         }
@@ -45,11 +46,11 @@ class ProductTypesController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Cập nhật loại sản phẩm.
      */
     public function update(Request $request, $id)
     {
-        $loai = Product_types::find($id);
+        $loai = Product_Types::find($id);
         if (!$loai) {
             return response()->json(['message' => 'Không tìm thấy loại sản phẩm'], 404);
         }
@@ -65,13 +66,17 @@ class ProductTypesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa loại sản phẩm.
      */
-    public function destroy( $id)
+    public function destroy($id)
     {
-         $loai = Product_types::find($id);
+        $loai = Product_Types::find($id);
         if (!$loai) {
             return response()->json(['message' => 'Không tìm thấy loại sản phẩm'], 404);
+        }
+
+        if ($loai->products()->exists()) {
+            return response()->json(['message' => 'Không thể xóa vì loại sản phẩm đang có sản phẩm liên quan'], 400);
         }
 
         $loai->delete();
