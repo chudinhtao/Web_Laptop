@@ -16,7 +16,11 @@ class Order extends Model
         'fullName',
         'phone',
         'address',
-        'orderstatus',
+
+        'orderstatus', // Thêm dòng này để cho phép cập nhật trạng thái
+
+     
+
     ];
 
     public static function revenue($month, $year)
