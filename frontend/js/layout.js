@@ -11,20 +11,30 @@ function loadPage(url) {
       container.innerHTML = html;
 
       // Xóa các thẻ script/link/style cũ đã thêm động
-      document.querySelectorAll("script[data-dynamic]").forEach((el) => el.remove());
-      document.querySelectorAll("link[data-dynamic-css]").forEach((el) => el.remove());
-      document.querySelectorAll("style[data-dynamic-style]").forEach((el) => el.remove());
+      document
+        .querySelectorAll("script[data-dynamic]")
+        .forEach((el) => el.remove());
+      document
+        .querySelectorAll("link[data-dynamic-css]")
+        .forEach((el) => el.remove());
+      document
+        .querySelectorAll("style[data-dynamic-style]")
+        .forEach((el) => el.remove());
 
       // Thêm lại <link rel="stylesheet"> vào <head>
-      container.querySelectorAll('link[rel="stylesheet"]').forEach((oldLink) => {
-        const newLink = document.createElement("link");
-        newLink.rel = "stylesheet";
-        newLink.href = oldLink.href;
-        newLink.setAttribute("data-dynamic-css", "true");
-        document.head.appendChild(newLink);
-      });
+      container
+        .querySelectorAll('link[rel="stylesheet"]')
+        .forEach((oldLink) => {
+          const newLink = document.createElement("link");
+          newLink.rel = "stylesheet";
+          newLink.href = oldLink.href;
+          newLink.setAttribute("data-dynamic-css", "true");
+          document.head.appendChild(newLink);
+        });
       // Xóa các <link> trong container để tránh bị lặp
-      container.querySelectorAll('link[rel="stylesheet"]').forEach((el) => el.remove());
+      container
+        .querySelectorAll('link[rel="stylesheet"]')
+        .forEach((el) => el.remove());
 
       // Thêm lại các thẻ <style> nội tuyến vào <head>
       container.querySelectorAll("style").forEach((oldStyle) => {
@@ -52,6 +62,12 @@ function loadPage(url) {
               typeof fetchProducts === "function"
             ) {
               fetchProducts();
+            }
+            if (
+              newScript.src.includes("order.js") &&
+              typeof loadOrders === "function"
+            ) {
+              loadOrders();
             }
           };
         } else {
