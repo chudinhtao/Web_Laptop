@@ -8,7 +8,16 @@ use App\Http\Controllers\OrderAdminController; // Di chuyển lên đây
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductTypesController;
+
 use App\Http\Controllers\BrandsController;
+
+
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\ThongkeController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +53,7 @@ Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 // Routes cho đơn hàng client
 Route::post('/orders', [OrderController::class, 'store']);
 
+
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
 Route::get('/admin/orders', [OrderAdminController::class, 'index']);
@@ -56,4 +66,27 @@ Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
 //Hủy đơn hàng 
 Route::put('/orders/{id}', [OrderController::class, 'updateStatus']);
 
+
+
+
 Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
+
+//Login/Logout
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout']);
+
+//Register
+Route::post('/register', [RegisterController::class, 'register']);
+
+//Users
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::post('/users', [UserController::class, 'store']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
+// Thống kê 
+Route::get('/thongke', [ThongkeController::class, 'dashboard']);
+
+
+

@@ -8,6 +8,7 @@ use App\Models\Order;
 
 class OrderController extends Controller
 {
+
     //Lấy hết đơn hàng (T định nghĩa phần này rồi Nghĩa nhé , có trong api.php rồi)
     public function index()
     {
@@ -71,5 +72,6 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Order status updated', 'order' => $order]);
     }
+
 
 }
