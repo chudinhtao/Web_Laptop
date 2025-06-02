@@ -10,6 +10,8 @@ class OrderAdminController extends Controller
     // API: Lấy danh sách đơn hàng cho admin
     public function index(Request $request)
     {
+
+
         $query = OrderAdmin::query();
         
         if ($request->has('status') && $request->status !== 'ALL') {
@@ -26,6 +28,7 @@ class OrderAdminController extends Controller
             $query->where('orderstatus', $dbStatus);
         }
         
+
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -43,12 +46,14 @@ class OrderAdminController extends Controller
             $order->status = $order->orderstatus;
         }
         
+
         return response()->json($orders);
     }
 
     // API: Cập nhật trạng thái đơn hàng (xác nhận/hủy)
     public function updateStatus(Request $request, $id)
     {
+
         try {
             $order = OrderAdmin::find($id);
             
@@ -106,3 +111,4 @@ class OrderAdminController extends Controller
         }
     }
 }
+
