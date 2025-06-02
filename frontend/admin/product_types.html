@@ -219,9 +219,8 @@
 
     <script>
       //load dữ liệu từ BE lên
-      document.addEventListener("DOMContentLoaded", function () {
-        fetchProductTypes();
-      });
+      (() => {
+   fetchProductTypes();
 
       function fetchProductTypes(keyword = "", page = 1) {
         const url = new URL("http://127.0.0.1:8000/api/product_types");
@@ -510,6 +509,7 @@
           hideEditModal();
         }
       });
+        })();
     </script>
   </body>
 </html>

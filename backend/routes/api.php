@@ -3,6 +3,7 @@
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Home_client;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Payment_OrderController;
 use App\Http\Controllers\UploadController;
 use App\Http\Controllers\OrderAdminController; // Di chuyển lên đây
 use Illuminate\Http\Request;
@@ -47,7 +48,6 @@ Route::apiResource('brands', BrandsController::class);
 //Giỏ hàng  trang chủ
 Route::get('/products_client', [Home_client::class, 'getByLoai']);
 
-Route::get('/products', [Home_client::class, 'getByLoai']);
 
 Route::get('/products_mouse', [Home_client::class, 'getAccessory']);
 Route::get('/laptops/{id}', [Home_client::class, 'getLaptopById']);
@@ -59,7 +59,7 @@ Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
 Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
 
 // Routes cho đơn hàng client
-Route::post('/orders', [OrderController::class, 'store']);
+Route::post('/buy', [Payment_OrderController::class, 'store']);
 
 
 

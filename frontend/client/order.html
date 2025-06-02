@@ -100,6 +100,7 @@
     </div>
 
     <script>
+      (() => {
       const statusColors = {
         Pending: "bg-yellow-200 text-yellow-800",
         Confirmed: "bg-blue-200 text-blue-800",
@@ -240,6 +241,7 @@
       window.addEventListener("DOMContentLoaded", () => {
         loadOrders("", "");
       });
+        })();
     </script>
       <!-- Order Summary Cards -->
       <div class="grid grid-cols-1 gap-6">
@@ -275,7 +277,6 @@
       </div>
     </div>
 
-    <script></script>
 
   </body>
 </html>
