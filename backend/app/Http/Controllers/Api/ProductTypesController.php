@@ -11,9 +11,16 @@ class ProductTypesController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Product_types::all();
+        $query = Product_types::query();
+
+        if ($request->has('keyword')) {
+            $keyword = $request->input('keyword');
+            $query->where('typeName', 'like', '%' . $keyword . '%');
+        }
+
+         return response()->json($query->paginate(5));
     }
 
     /**
@@ -22,7 +29,7 @@ class ProductTypesController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'typeName' => 'required|string|max:255',
+            'typeName' => 'required|unique:product_types,typeName',
         ]);
 
         $loai = Product_types::create([
