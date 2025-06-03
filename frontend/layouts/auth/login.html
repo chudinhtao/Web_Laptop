@@ -16,33 +16,50 @@
         <button id="show-register" class="text-blue-400 hover:underline focus:outline-none">Đăng ký ngay</button>
     </div>
 </div>
-<script>
+
+<script type="module">
+import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
+
 document.getElementById('show-register').onclick = function() {
     loadPage('auth/register.html');
 };
-document.getElementById('loginForm').onsubmit = function(e) {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    fetch('http://127.0.0.1:8000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.errors) {
-            alert(Object.values(data.errors).flat().join('\n'));
-        } else {
-            if (data.user && data.user.role === 'admin') {
-                window.location.href = 'http://127.0.0.1:5500/frontend/layouts/admin-layout.html';
-            } else if (data.user && data.user.role === 'user') {
-                window.location.href = 'http://127.0.0.1:5500/frontend/layouts/cliend-layout.html';
-            } else {
-                alert('Không xác định được quyền truy cập!');
-            }
-        }
-    })
-    .catch(() => alert('Có lỗi xảy ra!'));
+
+document.getElementById('loginForm').onsubmit = async function (e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.access_token) {
+      // 🧠 Lưu token vào localStorage
+      localStorage.setItem('token', data.access_token);
+
+      // ✅ Gọi API lấy thông tin user để kiểm tra role
+      const profileRes = await fetchWithTokenRetry('http://127.0.0.1:8000/api/user');
+      const profileData = await profileRes.json();
+
+      if (profileData.role === 'admin') {
+        window.location.href = '/frontend/layouts/admin-layout.html';
+      } else if (profileData.role === 'user') {
+        window.location.href = '/frontend/layouts/cliend-layout.html';
+      } else {
+        alert('Không xác định được quyền truy cập!');
+      }
+
+    } else {
+      alert('Đăng nhập thất bại! Vui lòng kiểm tra email/mật khẩu.');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Lỗi kết nối đến server!');
+  }
 };
 </script>

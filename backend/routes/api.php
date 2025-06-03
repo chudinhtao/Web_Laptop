@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ProductTypesController;
 
 use App\Http\Controllers\Api\ProductController;
-
-
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrandsController;
 
 
@@ -39,27 +38,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/upload', [UploadController ::class, 'upload']);
+Route::post('/upload', [UploadController::class, 'upload']);
 
 
 Route::apiResource('product_types', ProductTypesController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('brands', BrandsController::class);
-//Giỏ hàng  trang chủ
-Route::get('/products_client', [Home_client::class, 'getByLoai']);
 
-
-Route::get('/products_mouse', [Home_client::class, 'getAccessory']);
-Route::get('/laptops/{id}', [Home_client::class, 'getLaptopById']);
-Route::get('/accessory/{id}', [Home_client::class, 'getAccessoryById']);
-
-Route::post('/cart/add', [CartController::class, 'addToCart']);
-Route::get('/cart/{userId}', [CartController::class, 'getCartByUser']);
-Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
-Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
-
-// Routes cho đơn hàng client
-Route::post('/buy', [Payment_OrderController::class, 'store']);
 
 
 
@@ -82,21 +67,39 @@ Route::put('/orders/{id}', [OrderController::class, 'updateStatus']);
 Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
 
 //Login/Logout
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout']);
+// Route::post('/login', [LoginController::class, 'login']);
+// Route::post('/logout', [LoginController::class, 'logout']);
 
-//Register
-Route::post('/register', [RegisterController::class, 'register']);
+// //Register
+// Route::post('/register', [RegisterController::class, 'register']);
 
-//Users
-Route::get('/users', [UserController::class, 'index']);
-Route::get('/users/{id}', [UserController::class, 'show']);
-Route::post('/users', [UserController::class, 'store']);
-Route::put('/users/{id}', [UserController::class, 'update']);
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
+// //Users
+// Route::get('/users', [UserController::class, 'index']);
+// Route::get('/users/{id}', [UserController::class, 'show']);
+// Route::post('/users', [UserController::class, 'store']);
+// Route::put('/users/{id}', [UserController::class, 'update']);
+// Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Thống kê 
 Route::get('/thongke', [ThongkeController::class, 'dashboard']);
+//
 
+Route::post('login', [AuthController::class, 'login']);
+Route::middleware(['jwt.auth'])->group(function () {
+    Route::get('user', [AuthController::class, 'me']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+});
 
-
+//Giỏ hàng + hien thi Tạo
+Route::middleware('jwt.auth')->group(function () {
+    Route::get('/products_client', [Home_client::class, 'getByLoai']);
+    Route::get('/products_mouse', [Home_client::class, 'getAccessory']);
+    Route::get('/laptops/{id}', [Home_client::class, 'getLaptopById']);
+    Route::get('/accessory/{id}', [Home_client::class, 'getAccessoryById']);
+    Route::get('/cart', [CartController::class, 'getCartByUser']);
+    Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
+    Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
+    Route::post('/buy', [Payment_OrderController::class, 'store']);
+});
