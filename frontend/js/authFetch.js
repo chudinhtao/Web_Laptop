@@ -26,7 +26,7 @@ export async function fetchWithTokenRetry(url, options = {}) {
       // Refresh thất bại → chuyển về login
       localStorage.removeItem('token');
       alert('Hết phiên đăng nhập, vui lòng đăng nhập lại.');
-      window.location.href = '/frontend/auth/login.html';
+      window.location.href = '/frontend/layouts/login-layout.html';
     }
   }
 
