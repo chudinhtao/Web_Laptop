@@ -90,10 +90,11 @@
             </div>
         </div>
     </div>
-    <script>
+    <script type="module">
+        import { fetchWithTokenRetry } from 'http://localhost:8000/frontend/js/authFetch.js';
 async function fetchDashboard() {
     try {
-        const res = await fetch('http://localhost:8000/api/thongke');
+        const res = await fetchWithTokenRetry('http://localhost:8000/api/thongke');
         const data = await res.json();
 
         const summary = data.summary;
