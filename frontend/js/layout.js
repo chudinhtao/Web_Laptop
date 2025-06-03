@@ -72,6 +72,7 @@ function loadPage(url) {
           };
         } else {
           newScript.textContent = oldScript.textContent;
+          
           setTimeout(() => {
             if (
               newScript.textContent.includes("fetchProducts") &&
@@ -80,7 +81,13 @@ function loadPage(url) {
               fetchProducts();
             }
           }, 0);
+          if(oldScript.getAttribute('type')){
+                      newScript.setAttribute("type", "module");
+
+          }
           newScript.setAttribute("data-dynamic", "true");
+               
+
         }
 
         document.body.appendChild(newScript);
