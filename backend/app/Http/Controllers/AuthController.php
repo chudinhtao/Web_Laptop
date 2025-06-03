@@ -49,29 +49,29 @@ class AuthController extends Controller
         ]);
     }
 
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'yearOfbirth' => 'nullable|integer',
-        ]);
+    // public function register(Request $request)
+    // {
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users',
+    //         'password' => 'required|string|min:6|confirmed',
+    //         'phone' => 'nullable|string|max:20',
+    //         'address' => 'nullable|string|max:255',
+    //         'yearOfbirth' => 'nullable|integer',
+    //     ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => 'user',
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'yearOfbirth' => $request->yearOfbirth,
-        ]);
+    //     $user = User::create([
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //         'password' => bcrypt($request->password),
+    //         'role' => 'user',
+    //         'phone' => $request->phone,
+    //         'address' => $request->address,
+    //         'yearOfbirth' => $request->yearOfbirth,
+    //     ]);
 
-        $token = JWTAuth::fromUser($user);
+    //     $token = JWTAuth::fromUser($user);
 
-        return $this->respondWithToken($token);
-    }
+    //     return $this->respondWithToken($token);
+    // }
 }
