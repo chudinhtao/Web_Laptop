@@ -71,7 +71,7 @@ Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
 // Route::post('/logout', [LoginController::class, 'logout']);
 
 // //Register
-// Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/register', [RegisterController::class, 'register']);
 
 // //Users
 // Route::get('/users', [UserController::class, 'index']);

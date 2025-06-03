@@ -75,7 +75,9 @@
     </form>
   </div>
 </div>
-<script>
+<script type="module">
+import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
+
 var userModal = document.getElementById('userModal');
 var showAddBtn = document.getElementById('show-add-form');
 var closeModalBtn = document.getElementById('close-modal');
@@ -94,7 +96,7 @@ closeModalBtn.onclick = cancelBtn.onclick = function() {
 
 function deleteUser(id) {
   if (confirm('Bạn có chắc chắn muốn xóa user này?')) {
-    fetch(`http://127.0.0.1:8000/api/users/${id}`, {
+    fetchWithTokenRetry(`http://127.0.0.1:8000/api/users/${id}`, {
       method: 'DELETE'
     })
     .then(res => res.json())
@@ -136,7 +138,7 @@ document.getElementById('user-form').onsubmit = function(e) {
   const body = { name, email, role, phone, address, yearOfbirth };
   if (password) body.password = password;
 
-  fetch(url, {
+  fetchWithTokenRetry(url, {
     method: method,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -155,7 +157,7 @@ document.getElementById('user-form').onsubmit = function(e) {
 };
 
 function loadUsers() {
-  fetch('http://127.0.0.1:8000/api/users')
+  fetchWithTokenRetry('http://127.0.0.1:8000/api/users')
     .then(res => res.json())
     .then(data => {
       const tbody = document.getElementById('customer-table');
