@@ -38,11 +38,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/upload', [UploadController::class, 'upload']);
 
-
-Route::apiResource('products', ProductController::class);
-Route::apiResource('brands', BrandsController::class);
+// Route::apiResource('brands', BrandsController::class);
 
 
 
@@ -57,7 +54,6 @@ Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateSta
 Route::get('/orders', [OrderController::class, 'index']);
 
 
-Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
 
 //Login/Logout
 // Route::post('/login', [LoginController::class, 'login']);
@@ -86,6 +82,13 @@ Route::middleware(['jwt.auth'])->group(function () {
 
 //Giỏ hàng + hien thi Tạo
 Route::middleware('jwt.auth')->group(function () {
+    
+Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
+
+Route::post('/upload', [UploadController::class, 'upload']);
+Route::apiResource('products', ProductController::class);
+
+
     Route::get('/orders/user', [OrderController::class, 'getOrderByUser']);
     Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
     //Hủy đơn hàng 
