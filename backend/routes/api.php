@@ -41,12 +41,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/upload', [UploadController::class, 'upload']);
 
 
+Route::apiResource('product_types', ProductTypesController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('brands', BrandsController::class);
-
-
-
-
 
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
@@ -56,26 +53,10 @@ Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateSta
 //Client (đơn hàng theo userID)
 Route::get('/orders', [OrderController::class, 'index']);
 
-
 Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
-
-//Login/Logout
-// Route::post('/login', [LoginController::class, 'login']);
-// Route::post('/logout', [LoginController::class, 'logout']);
 
 // //Register
 Route::post('/register', [RegisterController::class, 'register']);
-
-// //Users
-// Route::get('/users', [UserController::class, 'index']);
-// Route::get('/users/{id}', [UserController::class, 'show']);
-// Route::post('/users', [UserController::class, 'store']);
-// Route::put('/users/{id}', [UserController::class, 'update']);
-// Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-// Thống kê 
-// Route::get('/thongke', [ThongkeController::class, 'dashboard']);
-
 
 Route::post('login', [AuthController::class, 'login']);
 Route::middleware(['jwt.auth'])->group(function () {
@@ -108,8 +89,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
-//Loại sản phẩm
-Route::apiResource('product_types', ProductTypesController::class);
 
 //thongke
     Route::get('/thongke', [ThongkeController::class, 'dashboard']);
