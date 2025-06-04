@@ -57,12 +57,6 @@ Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateSta
 //Client (đơn hàng theo userID)
 Route::get('/orders', [OrderController::class, 'index']);
 
-Route::get('/orders/user/{userId}', [OrderController::class, 'getOrderByUser']);
-Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
-//Hủy đơn hàng 
-Route::put('/orders/{id}', [OrderController::class, 'updateStatus']);
-
-
 
 Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
 
@@ -93,6 +87,10 @@ Route::middleware(['jwt.auth'])->group(function () {
 
 //Giỏ hàng + hien thi Tạo
 Route::middleware('jwt.auth')->group(function () {
+    Route::get('/orders/user', [OrderController::class, 'getOrderByUser']);
+    Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
+    //Hủy đơn hàng 
+    Route::put('/orders/{id}', [OrderController::class, 'updateStatus']);
     Route::get('/products_client', [Home_client::class, 'getByLoai']);
     Route::get('/products_mouse', [Home_client::class, 'getAccessory']);
     Route::get('/laptops/{id}', [Home_client::class, 'getLaptopById']);
