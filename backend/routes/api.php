@@ -41,7 +41,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/upload', [UploadController::class, 'upload']);
 
 
-Route::apiResource('product_types', ProductTypesController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('brands', BrandsController::class);
 
@@ -109,6 +108,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
+//Loại sản phẩm
+Route::apiResource('product_types', ProductTypesController::class);
 
 //thongke
     Route::get('/thongke', [ThongkeController::class, 'dashboard']);
