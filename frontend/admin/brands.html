@@ -255,141 +255,142 @@
     </div>
   </div>
 
-  <script>
-    var apiUrl = 'http://localhost:8000/api/brands';
-    var branches = [];
-    var editingId = null;
+  <script type="module">
+  var apiUrl = 'http://localhost:8000/api/brands';
+  var branches = [];
+  var editingId = null;
+  import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
 
-    function openModal(id) {
-      document.getElementById(id).classList.remove('hidden');
-      document.body.classList.add('overflow-hidden');
-    }
+  function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+  
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('branchesTable');
+    const emptyState = document.getElementById('emptyState');
     
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-      document.body.classList.remove('overflow-hidden');
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById('branchesTable');
-      const emptyState = document.getElementById('emptyState');
-      
-      if (data.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      
-      emptyState.classList.add('hidden');
+    if (data.length === 0) {
       tbody.innerHTML = '';
-      
-      data.forEach((row) => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition';
-        tr.innerHTML = `
-          <td class="px-3 py-3 whitespace-nowrap text-lg font-semibold text-gray-900">${row.id}</td>
-          <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-800 font-semibold">${row.nameOfBranch}</td>
-          <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.phone}</td>
-          <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.address}</td>
-          <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.email}</td>
-          <td class="px-3 py-3 whitespace-nowrap text-right text-lg font-medium">
-            <div class="flex items-center justify-end space-x-3">
-              <button onclick='openEditModal(${JSON.stringify(row)})' class="text-primary-600 hover:text-primary-800 transition" title="Edit">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button onclick='deleteBranch(${row.id})' class="text-red-600 hover:text-red-800 transition" title="Delete">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+      emptyState.classList.remove('hidden');
+      return;
     }
-
-    async function fetchBranches(query = '') {
-      let url = apiUrl;
-      if (query) url += `?search=${encodeURIComponent(query)}`;
-      
-      try {
-        const res = await fetch(url);
-        branches = await res.json();
-        renderTable(branches);
-      } catch (error) {
-        console.error('Error fetching branches:', error);
-      }
-    }
-
-    document.getElementById('searchForm').onsubmit = e => {
-      e.preventDefault();
-      fetchBranches(document.getElementById('searchInput').value);
-    };
     
-    document.getElementById('searchInput').oninput = function() {
-      fetchBranches(this.value);
-    };
+    emptyState.classList.add('hidden');
+    tbody.innerHTML = '';
+    
+    data.forEach((row) => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50 transition';
+      tr.innerHTML = `
+        <td class="px-3 py-3 whitespace-nowrap text-lg font-semibold text-gray-900">${row.id}</td>
+        <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-800 font-semibold">${row.nameOfBranch}</td>
+        <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.phone}</td>
+        <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.address}</td>
+        <td class="px-3 py-3 whitespace-nowrap text-lg text-gray-700">${row.email}</td>
+        <td class="px-3 py-3 whitespace-nowrap text-right text-lg font-medium">
+          <div class="flex items-center justify-end space-x-3">
+            <button onclick='openEditModal(${JSON.stringify(row)})' class="text-primary-600 hover:text-primary-800 transition" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button onclick='deleteBranch(${row.id})' class="text-red-600 hover:text-red-800 transition" title="Delete">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 
-    document.getElementById('addBranchForm').onsubmit = async function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = Object.fromEntries(new FormData(form));
-      
-      try {
-        await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        closeModal('addModal');
-        form.reset();
-        fetchBranches();
-      } catch (error) {
-        console.error('Error adding branch:', error);
-      }
-    };
-
-    function openEditModal(row) {
-      editingId = row.id;
-      const form = document.getElementById('editBranchForm');
-      form.nameOfBranch.value = row.nameOfBranch;
-      form.phone.value = row.phone;
-      form.address.value = row.address;
-      form.email.value = row.email;
-      form.id.value = row.id;
-      openModal('editModal');
+  async function fetchBranches(query = '') {
+    let url = apiUrl;
+    if (query) url += `?search=${encodeURIComponent(query)}`;
+    
+    try {
+      const res = await fetchWithTokenRetry(url);
+      branches = await res.json();
+      renderTable(branches);
+    } catch (error) {
+      console.error('Error fetching branches:', error);
     }
+  }
 
-    document.getElementById('editBranchForm').onsubmit = async function(e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = Object.fromEntries(new FormData(form));
-      
-      try {
-        await fetch(`${apiUrl}/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        closeModal('editModal');
-        fetchBranches();
-      } catch (error) {
-        console.error('Error updating branch:', error);
-      }
-    };
+  document.getElementById('searchForm').onsubmit = e => {
+    e.preventDefault();
+    fetchBranches(document.getElementById('searchInput').value);
+  };
+  
+  document.getElementById('searchInput').oninput = function() {
+    fetchBranches(this.value);
+  };
 
-    async function deleteBranch(id) {
-      if (!confirm('Are you sure you want to delete this branch?')) return;
-      
-      try {
-        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
-        fetchBranches();
-      } catch (error) {
-        console.error('Error deleting branch:', error);
-      }
+  document.getElementById('addBranchForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = Object.fromEntries(new FormData(form));
+    
+    try {
+      await fetchWithTokenRetry(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      closeModal('addModal');
+      form.reset();
+      fetchBranches();
+    } catch (error) {
+      console.error('Error adding branch:', error);
     }
+  };
 
-    // Initial load
-    fetchBranches();
-  </script>
+  function openEditModal(row) {
+    editingId = row.id;
+    const form = document.getElementById('editBranchForm');
+    form.nameOfBranch.value = row.nameOfBranch;
+    form.phone.value = row.phone;
+    form.address.value = row.address;
+    form.email.value = row.email;
+    form.id.value = row.id;
+    openModal('editModal');
+  }
+
+  document.getElementById('editBranchForm').onsubmit = async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = Object.fromEntries(new FormData(form));
+    
+    try {
+      await fetchWithTokenRetry(`${apiUrl}/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      closeModal('editModal');
+      fetchBranches();
+    } catch (error) {
+      console.error('Error updating branch:', error);
+    }
+  };
+
+  async function deleteBranch(id) {
+    if (!confirm('Are you sure you want to delete this branch?')) return;
+    
+    try {
+      await fetchWithTokenRetry(`${apiUrl}/${id}`, { method: 'DELETE' });
+      fetchBranches();
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+    }
+  }
+
+  // Initial load
+  fetchBranches();
+</script>
 </body>
 </html>
