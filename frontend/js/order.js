@@ -1,3 +1,5 @@
+import { fetchWithTokenRetry } from "http://127.0.0.1:5501/frontend/js/authFetch.js";
+
 const statusColors = {
   Pending: "bg-yellow-200 text-yellow-800",
   Confirmed: "bg-blue-200 text-blue-800",
@@ -15,8 +17,6 @@ function formatCurrency(amount) {
   return Number(amount).toLocaleString("vi-VN") + " Đ";
 }
 
-const userId = 1; // gán cứng
-
 document.getElementById("btnFilter").addEventListener("click", function () {
   const keyword = document.getElementById("txtSearch").value.trim();
   const status = document.getElementById("statusFilter").value;
@@ -29,8 +29,8 @@ async function loadOrders(keyword = "", status = "") {
     if (keyword) params.append("keyword", keyword);
     if (status) params.append("status", status);
 
-    const response = await fetch(
-      `http://localhost:8000/api/orders/user/${userId}?${params.toString()}`
+    const response = await fetchWithTokenRetry(
+      `http://localhost:8000/api/orders/user?${params.toString()}`
     );
     const orders = await response.json();
 
