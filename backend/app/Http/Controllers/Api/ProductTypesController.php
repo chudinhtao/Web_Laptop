@@ -84,8 +84,11 @@ class ProductTypesController extends Controller
             return response()->json(['message' => 'Không tìm thấy loại sản phẩm'], 404);
         }
 
-        if ($loai->products()->exists()) {
-            return response()->json(['message' => 'Không thể xóa vì loại sản phẩm đang có sản phẩm liên quan'], 400);
+        $productCount = $loai->products()->count();
+        if ($productCount > 0) {
+            return response()->json([
+                'message' => "Không thể xóa vì loại sản phẩm đang được sử dụng bởi {$productCount} sản phẩm"
+            ], 400);
         }
 
         $loai->delete();
