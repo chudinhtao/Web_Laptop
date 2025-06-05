@@ -41,6 +41,7 @@ return $request->user();
 Route::post('/upload', [UploadController::class, 'upload']);
 
 
+
 Route::apiResource('products', ProductController::class);
 Route::apiResource('brands', BrandsController::class);
 

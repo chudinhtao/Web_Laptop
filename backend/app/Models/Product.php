@@ -24,6 +24,7 @@ class Product extends Model
         'price',
         'quality',
         'img',
+        'isActive',
     ];
 
     /**
