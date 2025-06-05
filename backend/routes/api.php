@@ -74,8 +74,8 @@ Route::post('/register', [RegisterController::class, 'register']);
 // Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Thống kê 
-// Route::get('/thongke', [ThongkeController::class, 'dashboard']);
-
+Route::get('/thongke', [ThongkeController::class, 'dashboard']);
+//
 
 Route::post('login', [AuthController::class, 'login']);
 Route::middleware(['jwt.auth'])->group(function () {
@@ -100,18 +100,3 @@ Route::middleware('jwt.auth')->group(function () {
     Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
     Route::post('/buy', [Payment_OrderController::class, 'store']);
 });
-
-Route::middleware('jwt.auth')->group(function () {
-//Users
-    Route::get('/users', [UserController::class, 'index']);
-    Route::get('/users/{id}', [UserController::class, 'show']);
-    Route::post('/users', [UserController::class, 'store']);
-    Route::put('/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy']);
-//Loại sản phẩm
-Route::apiResource('product_types', ProductTypesController::class);
-
-//thongke
-    Route::get('/thongke', [ThongkeController::class, 'dashboard']);
-});
-
