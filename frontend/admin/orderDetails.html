@@ -201,10 +201,11 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
         // Lấy id từ URL
         const params = new URLSearchParams(window.location.search);
         const orderId = params.get("id");
+        import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
 
         function formatCurrency(amount) {
             if (!amount) return "0 ₫";
@@ -231,7 +232,7 @@
         };
 
         if (orderId) {
-            fetch(`http://127.0.0.1:8000/api/orders/${orderId}`)
+            fetchWithTokenRetry(`http://127.0.0.1:8000/api/orders/${orderId}`)
                 .then((res) => {
                     if (!res.ok) throw new Error("Không lấy được dữ liệu đơn hàng");
                     return res.json();
