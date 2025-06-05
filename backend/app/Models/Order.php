@@ -16,10 +16,7 @@ class Order extends Model
         'fullName',
         'phone',
         'address',
-
-        'orderstatus', // Thêm dòng này để cho phép cập nhật trạng thái
-
-     
+        'orderstatus', 
 
     ];
 
