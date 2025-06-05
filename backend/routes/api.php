@@ -41,7 +41,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/upload', [UploadController::class, 'upload']);
 
 
-Route::apiResource('product_types', ProductTypesController::class);
+
 Route::apiResource('products', ProductController::class);
 Route::apiResource('brands', BrandsController::class);
 
@@ -90,6 +90,12 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
+    Route::get('product_types', [ProductTypesController::class, 'index']);
+    Route::post('product_types', [ProductTypesController::class, 'store']);
+    Route::get('product_types/{id}', [ProductTypesController::class, 'show']);
+    Route::put('product_types/{id}', [ProductTypesController::class, 'update']);
+    Route::delete('product_types/{id}', [ProductTypesController::class, 'destroy']);
+    
 //thongke
     Route::get('/thongke', [ThongkeController::class, 'dashboard']);
 });
