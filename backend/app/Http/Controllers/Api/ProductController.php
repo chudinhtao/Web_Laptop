@@ -13,7 +13,10 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with(['type', 'branch', 'laptop', 'accessory'])->get();
+        // Chỉ lấy các sản phẩm có isActive = 1
+        $products = Product::with(['type', 'branch', 'laptop', 'accessory'])
+            ->where('isActive', 1)
+            ->get();
         return response()->json($products);
     }
 
@@ -43,7 +46,8 @@ class ProductController extends Controller
             'id_branch' => $data['id_branch'],
             'price' => $data['price'],
             'quality' => $data['quality'],
-            'img' => $data['img']
+            'img' => $data['img'],
+            'isActive' => 1 // Rõ ràng đặt isActive = 1 khi tạo mới
         ]);
 
         if ($data['id_type'] == 1 && $data['laptop']) {
@@ -73,7 +77,8 @@ class ProductController extends Controller
             'laptop.GPU' => 'nullable|string|max:255',
             'laptop.des' => 'nullable|string',
             'accessory' => 'nullable|array',
-            'accessory.des' => 'nullable|string'
+            'accessory.des' => 'nullable|string',
+            'isActive' => 'sometimes|boolean' // Cho phép cập nhật isActive nếu được gửi
         ]);
 
         $product->update([
@@ -82,7 +87,8 @@ class ProductController extends Controller
             'id_branch' => $data['id_branch'],
             'price' => $data['price'],
             'quality' => $data['quality'],
-            'img' => $data['img']
+            'img' => $data['img'],
+            'isActive' => $data['isActive'] ?? $product->isActive // Giữ nguyên nếu không gửi
         ]);
 
         if ($data['id_type'] == 1 && $data['laptop']) {
@@ -105,7 +111,8 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        $product->delete();
-        return response()->json(['message' => 'Xóa thành công']);
+        // Cập nhật isActive thành false thay vì xóa
+        $product->update(['isActive' => 0]);
+        return response()->json(['message' => 'Sản phẩm đã được ẩn thành công']);
     }
 }

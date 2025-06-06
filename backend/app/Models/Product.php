@@ -24,6 +24,7 @@ class Product extends Model
         'price',
         'quality',
         'img',
+        'isActive', // Thêm isActive để cho phép cập nhật qua mass assignment
     ];
 
     /**
@@ -31,7 +32,7 @@ class Product extends Model
      */
     public function type(): BelongsTo
     {
-        return $this->belongsTo(Product_Types::class, 'id_type', 'id');
+        return $this->belongsTo(ProductType::class, 'id_type', 'id');
     }
 
     /**
