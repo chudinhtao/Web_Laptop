@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product_Types; // Đổi thành ProductType
+use App\Models\Product;
+use App\Models\Cart;
+use App\Models\Product_Types;
 use Illuminate\Http\Request;
 
 class ProductTypesController extends Controller
@@ -84,14 +86,19 @@ class ProductTypesController extends Controller
             return response()->json(['message' => 'Không tìm thấy loại sản phẩm'], 404);
         }
 
-        $productCount = $loai->products()->count();
-        if ($productCount > 0) {
-            return response()->json([
-                'message' => "Không thể xóa vì loại sản phẩm đang được sử dụng bởi {$productCount} sản phẩm"
-            ], 400);
+        // Lấy tất cả sản phẩm thuộc loại sản phẩm này
+        $products = $loai->products;
+
+        foreach ($products as $product) {
+            Cart::where('productID', $product->id)->delete();
+
+            $product->isActive = 0;
+            $product->save();
         }
 
         $loai->delete();
+
         return response()->json(['message' => 'Xóa thành công']);
     }
+
 }
