@@ -265,8 +265,10 @@
         <input type="number" id="price" step="0.01" min="0" required />
         <label for="quality">Số lượng</label>
         <input type="number" id="quality" min="0" required />
+
         <label for="img">Hình ảnh (URL)</label>
         <input type="text" id="img" readonly onclick="openUploadWindow()" />
+        
         <div id="laptopFields" style="display: none">
           <label for="screenSpecs">Màn hình</label>
           <input type="text" id="screenSpecs" />
@@ -293,6 +295,33 @@
 </div>
 
 <script>
+// jwt
+ async function fetchWithTokenRetry(url, options = {}) {
+      let token = localStorage.getItem('token');
+      options.headers = { ...options.headers, Authorization: `Bearer ${token}` };
+      let response = await fetch(url, options);
+
+      if (response.status === 401) {
+        const refreshRes = await fetch(`${API_BASE_URL}/refresh`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          localStorage.setItem('token', data.access_token);
+          options.headers['Authorization'] = `Bearer ${data.access_token}`;
+          response = await fetch(url, options);
+        } else {
+          localStorage.removeItem('token');
+          alert('Hết phiên đăng nhập, vui lòng đăng nhập lại.');
+          window.location.href = '/frontend/layouts/login-layout.html';
+        }
+      }
+
+      return response;
+    }
+//
   var currentProductId = null;
 
   // Mở cửa sổ upload
@@ -315,8 +344,8 @@
   async function loadFilters() {
     try {
       const [typesRes, brandsRes] = await Promise.all([
-        fetch("http://127.0.0.1:8000/api/product_types"),
-        fetch("http://127.0.0.1:8000/api/brands"),
+        fetchWithTokenRetry("http://127.0.0.1:8000/api/products_types"),
+        fetchWithTokenRetry("http://127.0.0.1:8000/api/brands"),
       ]);
       if (!typesRes.ok || !brandsRes.ok) throw new Error("Lỗi khi tải bộ lọc");
       const types = await typesRes.json();
@@ -352,77 +381,79 @@
   }
 
   // Lấy danh sách sản phẩm
-  async function fetchProducts() {
-    const tbody = document.getElementById("productTableBody");
-    tbody.innerHTML =
-      '<tr><td colspan="9" class="loading"><div class="spinner"></div></td></tr>';
+ async function fetchProducts() {
+  const tbody = document.getElementById("productTableBody");
+  tbody.innerHTML =
+    '<tr><td colspan="9" class="loading"><div class="spinner"></div></td></tr>';
 
-    try {
-      const response = await fetch("http://127.0.0.1:8000/api/products");
-      if (!response.ok) throw new Error("Lỗi server: " + response.status);
-      const products = await response.json();
+  try {
+    const response = await fetchWithTokenRetry("http://127.0.0.1:8000/api/products");
+    if (!response.ok) throw new Error("Lỗi server: " + response.status);
+    const products = await response.json();
 
-      tbody.innerHTML = "";
-      if (!products || !Array.isArray(products) || products.length === 0) {
-        tbody.innerHTML =
-          '<tr><td colspan="9" class="empty">Không có sản phẩm nào</td></tr>';
-        return;
-      }
-
-      const fragment = document.createDocumentFragment();
-      products.forEach((prod) => {
-        const details = prod.laptop || prod.accessory || {};
-        const specs =
-          prod.id_type == 1
-            ? [
-                details.screenSpecs,
-                details.CPU,
-                details.RAM,
-                details.SSD,
-                details.GPU,
-                details.des,
-              ]
-                .filter(Boolean)
-                .join(", ")
-            : details.des || "N/A";
-        const tr = document.createElement("tr");
-        // Thoát ký tự đặc biệt trong productName để tránh lỗi XSS
-        const safeProductName = prod.productName
-          ? prod.productName.replace(/'/g, "\\'").replace(/"/g, "&quot;")
-          : "Sản phẩm";
-        tr.innerHTML = `
-            <td>${prod.id ?? "N/A"}</td>
-            <td>${
-              prod.img
-                ? `<img src="${prod.img}" class="product-img" alt="${safeProductName}">`
-                : "N/A"
-            }</td>
-            <td>${safeProductName}</td>
-            <td>${prod.type?.typeName ?? "N/A"}</td>
-            <td>${prod.branch?.nameOfBranch ?? "N/A"}</td>
-            <td>${formatPrice(prod.price)}</td>
-            <td>${prod.quality ?? "N/A"}</td>
-            <td>${specs}</td>
-            <td class="actions">
-              <button title="Sửa" onclick="openEditModal(${
-                prod.id
-              }, '${encodeURIComponent(
-          JSON.stringify(prod)
-        )}')"><i class="fas fa-edit"></i></button>
-              <button class="delete" title="Xóa" onclick="deleteProduct(${
-                prod.id
-              })"><i class="fas fa-trash-alt"></i></button>
-            </td>
-          `;
-        fragment.appendChild(tr);
-      });
-      tbody.appendChild(fragment);
-    } catch (error) {
-      console.error("Lỗi khi tải sản phẩm:", error);
-      tbody.innerHTML = `<tr><td colspan="9" class="error">${error.message}<br><small>Vui lòng kiểm tra console</small></td></tr>`;
+    tbody.innerHTML = "";
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="9" class="empty">Không có sản phẩm nào</td></tr>';
+      return;
     }
-  }
 
+    const fragment = document.createDocumentFragment();
+    products.forEach((prod) => {
+      // Chỉ hiển thị sản phẩm có isActive = 1
+      if (prod.isActive === 0) return;
+      
+      const details = prod.laptop || prod.accessory || {};
+      const specs =
+        prod.id_type == 1
+          ? [
+              details.screenSpecs,
+              details.CPU,
+              details.RAM,
+              details.SSD,
+              details.GPU,
+              details.des,
+            ]
+              .filter(Boolean)
+              .join(", ")
+          : details.des || "N/A";
+      const tr = document.createElement("tr");
+      // Thoát ký tự đặc biệt trong productName để tránh lỗi XSS
+      const safeProductName = prod.productName
+        ? prod.productName.replace(/'/g, "\\'").replace(/"/g, "")
+        : "Sản phẩm";
+      tr.innerHTML = `
+          <td>${prod.id ?? "N/A"}</td>
+          <td>${
+            prod.img
+              ? `<img src="${prod.img}" class="product-img" alt="${safeProductName}">`
+              : "N/A"
+          }</td>
+          <td>${safeProductName}</td>
+          <td>${prod.type?.typeName ?? "N/A"}</td>
+          <td>${prod.branch?.nameOfBranch ?? "N/A"}</td>
+          <td>${formatPrice(prod.price)}</td>
+          <td>${prod.quality ?? "N/A"}</td>
+          <td>${specs}</td>
+          <td class="actions">
+            <button title="Sửa" onclick="openEditModal(${
+              prod.id
+            }, '${encodeURIComponent(
+        JSON.stringify(prod)
+      )}')"><i class="fas fa-edit"></i></button>
+            <button class="delete" title="Xóa" onclick="deleteProduct(${
+              prod.id
+            })"><i class="fas fa-trash-alt"></i></button>
+          </td>
+        `;
+      fragment.appendChild(tr);
+    });
+    tbody.appendChild(fragment);
+  } catch (error) {
+    console.error("Lỗi khi tải sản phẩm:", error);
+    tbody.innerHTML = `<tr><td colspan="9" class="error">${error.message}<br><small>Vui lòng kiểm tra console</small></td></tr>`;
+  }
+}
   // Định dạng giá
   function formatPrice(price) {
     const num = parseFloat(price);
@@ -460,7 +491,7 @@
 
       const laptopFields = document.getElementById("laptopFields");
       const accessoryFields = document.getElementById("accessoryFields");
-      if (product.id_type == 1) {
+      if (product.id_type == 4) {
         laptopFields.style.display = "block";
         accessoryFields.style.display = "none";
         document.getElementById("screenSpecs").value =
@@ -470,7 +501,7 @@
         document.getElementById("SSD").value = product.laptop?.SSD || "";
         document.getElementById("GPU").value = product.laptop?.GPU || "";
         document.getElementById("laptopDes").value = product.laptop?.des || "";
-      } else if (product.id_type == 2) {
+      } else if (product.id_type == 5) {
         laptopFields.style.display = "none";
         accessoryFields.style.display = "block";
         document.getElementById("accessoryDes").value =
@@ -496,95 +527,108 @@
 
   // Xử lý submit form
   document
-    .getElementById("productForm")
-    .addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const data = {
-        productName: document.getElementById("productName").value,
-        id_type: parseInt(document.getElementById("id_type").value),
-        id_branch: parseInt(document.getElementById("id_branch").value),
-        price: parseFloat(document.getElementById("price").value),
-        quality: parseInt(document.getElementById("quality").value),
-        img: document.getElementById("img").value || null,
+  .getElementById("productForm")
+  .addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const data = {
+      productName: document.getElementById("productName").value,
+      id_type: parseInt(document.getElementById("id_type").value),
+      id_branch: parseInt(document.getElementById("id_branch").value),
+      price: parseFloat(document.getElementById("price").value),
+      quality: parseInt(document.getElementById("quality").value),
+      img: document.getElementById("img").value || null,
+      isActive: currentProductId ? undefined : 1, // Chỉ gửi isActive khi thêm mới
+    };
+
+    if (data.id_type === 4) {
+      data.laptop = {
+        screenSpecs: document.getElementById("screenSpecs").value || null,
+        CPU: document.getElementById("CPU").value || null,
+        RAM: document.getElementById("RAM").value || null,
+        SSD: document.getElementById("SSD").value || null,
+        GPU: document.getElementById("GPU").value || null,
+        des: document.getElementById("laptopDes").value || null,
       };
+      data.accessory = null;
+    } else if (data.id_type === 5) {
+      data.laptop = null;
+      data.accessory = {
+        des: document.getElementById("accessoryDes").value || null,
+      };
+    } else {
+      data.laptop = null;
+      data.accessory = null;
+    }
 
-      if (data.id_type === 1) {
-        data.laptop = {
-          screenSpecs: document.getElementById("screenSpecs").value || null,
-          CPU: document.getElementById("CPU").value || null,
-          RAM: document.getElementById("RAM").value || null,
-          SSD: document.getElementById("SSD").value || null,
-          GPU: document.getElementById("GPU").value || null,
-          des: document.getElementById("laptopDes").value || null,
-        };
-        data.accessory = null;
-      } else if (data.id_type === 2) {
-        data.laptop = null;
-        data.accessory = {
-          des: document.getElementById("accessoryDes").value || null,
-        };
-      } else {
-        data.laptop = null;
-        data.accessory = null;
-      }
+    try {
+      const url = currentProductId
+        ? `http://127.0.0.1:8000/api/products/${currentProductId}`
+        : "http://127.0.0.1:8000/api/products";
+      const method = currentProductId ? "PUT" : "POST";
+      const response = await fetchWithTokenRetry(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      try {
-        const url = currentProductId
-          ? `http://127.0.0.1:8000/api/products/${currentProductId}`
-          : "http://127.0.0.1:8000/api/products";
-        const method = currentProductId ? "PUT" : "POST";
-        const response = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
-
-        let errorMessage = "Lỗi server: " + response.status;
-        if (!response.ok) {
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.includes("application/json")) {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorMessage;
-          } else {
-            const text = await response.text();
-            console.error("Phản hồi không phải JSON:", text);
-            errorMessage = "Lỗi server, phản hồi không phải JSON";
-          }
-          throw new Error(errorMessage);
+      let errorMessage = "Lỗi server: " + response.status;
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          const text = await response.text();
+          console.error("Phản hồi không phải JSON:", text);
+          errorMessage = "Lỗi server, phản hồi không phải JSON";
         }
-
-        closeModal();
-        fetchProducts();
-        alert(
-          currentProductId
-            ? "Cập nhật sản phẩm thành công"
-            : "Thêm sản phẩm thành công"
-        );
-      } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Lỗi: " + error.message);
+        throw new Error(errorMessage);
       }
-    });
+
+      closeModal();
+      fetchProducts();
+      alert(
+        currentProductId
+          ? "Cập nhật sản phẩm thành công"
+          : "Thêm sản phẩm thành công"
+      );
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("Lỗi: " + error.message);
+    }
+  });
 
   // Xóa sản phẩm
-  async function deleteProduct(id) {
-    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/products/${id}`,
-          {
-            method: "DELETE",
-          }
-        );
-        if (!response.ok) throw new Error("Lỗi server: " + response.status);
-        fetchProducts();
-        alert("Xóa sản phẩm thành công");
-      } catch (error) {
-        console.error("Lỗi:", error);
-        alert("Lỗi: " + error.message);
+ // Xóa sản phẩm
+async function deleteProduct(id) {
+  if (confirm("Bạn có chắc muốn xóa sản phẩm này? Sản phẩm sẽ được ẩn thay vì xóa hoàn toàn.")) {
+    try {
+      const response = await fetchWithTokenRetry(`http://127.0.0.1:8000/api/products/${id}`, {
+        method: "DELETE", // Sử dụng DELETE thay vì PUT
+        headers: { "Content-Type": "application/json" },
+        // Không cần body vì destroy không yêu cầu payload
+      });
+      if (!response.ok) {
+        let errorMessage = "Lỗi server: " + response.status;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          const text = await response.text();
+          console.error("Phản hồi không phải JSON:", text);
+          errorMessage = "Lỗi server, phản hồi không phải JSON: " + text;
+        }
+        throw new Error(errorMessage);
       }
+      fetchProducts();
+      alert("Sản phẩm đã được ẩn thành công");
+    } catch (error) {
+      console.error("Lỗi:", error);
+      alert("Lỗi: " + error.message);
     }
   }
+}
 
   // Lọc và tìm kiếm
   function applyFilters() {
@@ -625,8 +669,8 @@
   document.getElementById("id_type").addEventListener("change", function () {
     const laptopFields = document.getElementById("laptopFields");
     const accessoryFields = document.getElementById("accessoryFields");
-    laptopFields.style.display = this.value == "1" ? "block" : "none";
-    accessoryFields.style.display = this.value == "2" ? "block" : "none";
+    laptopFields.style.display = this.value == "4" ? "block" : "none";
+    accessoryFields.style.display = this.value == "5" ? "block" : "none";
   });
 
   // Tải dữ liệu ban đầu

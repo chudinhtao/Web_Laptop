@@ -43,7 +43,13 @@ Route::post('/upload', [UploadController::class, 'upload']);
 
 
 Route::apiResource('products', ProductController::class);
-Route::apiResource('brands', BrandsController::class);
+Route::apiResource('brands', App\Http\Controllers\Api\BrandsController::class);
+Route::apiResource('products_types', ProductTypesController::class);
+
+Route::get('product_types', [ProductTypesController::class, 'index']);
+
+
+
 
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
