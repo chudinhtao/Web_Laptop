@@ -42,11 +42,7 @@ Route::post('/upload', [UploadController::class, 'upload']);
 
 
 
-Route::apiResource('products', ProductController::class);
-Route::apiResource('brands', App\Http\Controllers\Api\BrandsController::class);
-Route::apiResource('products_types', ProductTypesController::class);
 
-Route::get('product_types', [ProductTypesController::class, 'index']);
 
 
 
@@ -73,6 +69,13 @@ Route::middleware(['jwt.auth'])->group(function () {
 
 //Giỏ hàng + hien thi Tạo
 Route::middleware('jwt.auth')->group(function () {
+    //products
+
+Route::apiResource('products', ProductController::class);
+Route::apiResource('brands', App\Http\Controllers\Api\BrandsController::class);
+Route::apiResource('products_types', ProductTypesController::class);
+
+//
     Route::get('/orders/user', [OrderController::class, 'getOrderByUser']);
     Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
     //Hủy đơn hàng 
