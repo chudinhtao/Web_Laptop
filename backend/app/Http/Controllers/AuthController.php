@@ -12,6 +12,11 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
+        $user = User::where('email', $credentials['email'])->first();
+        if (!$user || !$user->active) {
+            return response()->json(['error' => 'Tài khoản không hoạt động hoặc không tồn tại'], 403);
+        }
+
         if (!$token = JWTAuth::attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
