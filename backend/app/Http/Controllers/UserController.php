@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::where('active', true)->get();
         return response()->json($users);
     }
 
@@ -30,6 +30,7 @@ class UserController extends Controller
         if (!isset($validated['role'])) {
             $validated['role'] = 'user';
         }
+        $validated['active'] = true;
 
         $user = User::create($validated);
 
@@ -79,7 +80,8 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Không tìm thấy user'], 404);
         }
-        $user->delete();
-        return response()->json(['message' => 'Xóa user thành công']);
+        $user->active = false;
+        $user->save();
+        return response()->json(['message' => 'Đã chuyển trạng thái khách hàng thành không hoạt động']);
     }
 }
