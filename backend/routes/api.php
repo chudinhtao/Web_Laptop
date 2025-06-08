@@ -44,17 +44,17 @@ Route::post('/upload', [UploadController::class, 'upload']);
 
 Route::apiResource('product_types', ProductTypesController::class);
 Route::apiResource('products', ProductController::class);
-Route::apiResource('brands', BrandsController::class);
+// Route::apiResource('brands', BrandsController::class);
 
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
-Route::get('/admin/orders', [OrderAdminController::class, 'index']);
-Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateStatus']);
+// Route::get('/admin/orders', [OrderAdminController::class, 'index']);
+// Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateStatus']);
 
 //Client (đơn hàng theo userID)
 Route::get('/orders', [OrderController::class, 'index']);
 
-Route::apiResource('brands', App\Http\Controllers\BrandsController::class);
+
 
 // //Register
 Route::post('/register', [RegisterController::class, 'register']);
@@ -96,7 +96,15 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('product_types/{id}', [ProductTypesController::class, 'show']);
     Route::put('product_types/{id}', [ProductTypesController::class, 'update']);
     Route::delete('product_types/{id}', [ProductTypesController::class, 'destroy']);
-
+//Brands
+    Route::get('brands', [BrandsController::class, 'index']);
+    Route::post('brands', [BrandsController::class, 'store']);
+    Route::get('brands/{id}', [BrandsController::class, 'show']);
+    Route::put('brands/{id}', [BrandsController::class, 'update']);
+    Route::delete('brands/{id}', [BrandsController::class, 'destroy']);
+//OrderAdmin
+    Route::get('/admin/orders', [OrderAdminController::class, 'index']);
+    Route::put('/admin/orders/{id}/status', [OrderAdminController::class, 'updateStatus']);
 //thongke
     Route::get('/thongke', [ThongkeController::class, 'dashboard']);
 });

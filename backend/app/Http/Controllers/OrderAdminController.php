@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OrderAdmin;
+use App\Models\Oder_detail;
+use App\Models\Product;
+
 
 class OrderAdminController extends Controller
 {
@@ -85,13 +88,26 @@ class OrderAdminController extends Controller
             $enumStatus = $enumMap[$status];
             $order->orderstatus = $enumStatus;
             $order->save();
-            
+
+            // Nếu xác nhận đơn hàng, trừ số lượng sản phẩm
+            if ($enumStatus === 'Confirmed') {
+                // Lấy chi tiết đơn hàng từ bảng Order_detail
+                $orderDetails = Order_detail::where('orderID', $id)->get();
+                foreach ($orderDetails as $detail) {
+                    $product = Product::find($detail->productID);
+                    if ($product) {
+                        $product->quality = max(0, $product->quality - $detail->quantity);
+                        $product->save();
+                    }
+                }
+            }
+
             // Refresh the model to get updated data
             $order->refresh();
             $order->status = $order->orderstatus;
             
             // Đồng bộ sang bảng orders nếu có model khác
-            $orderModel = \App\Models\Order::find($id);
+            $orderModel = Order::find($id);
             if ($orderModel) {
                 $orderModel->orderstatus = $enumStatus;
                 $orderModel->save();
