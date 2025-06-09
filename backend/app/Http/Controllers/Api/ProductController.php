@@ -55,9 +55,9 @@ class ProductController extends Controller
             'isActive' => 1 // Đảm bảo isActive mặc định là 1
         ]);
 
-        if ($data['id_type'] == 4 && $data['laptop']) {
+        if ($data['id_type'] == 1 && $data['laptop']) {
             Laptop::create(array_merge(['productID' => $product->id], $data['laptop']));
-        } elseif ($data['id_type'] == 5 && $data['accessory']) {
+        } elseif ($data['id_type'] == 2 && $data['accessory']) {
             Accessory::create(array_merge(['productID' => $product->id], $data['accessory']));
         }
 
@@ -110,13 +110,13 @@ class ProductController extends Controller
             'isActive' => isset($data['isActive']) ? $data['isActive'] : $product->isActive // Chỉ cập nhật nếu isActive được gửi
         ]);
 
-        if ($data['id_type'] == 4 && $data['laptop']) {
+        if ($data['id_type'] == 1 && $data['laptop']) {
             Laptop::updateOrCreate(
                 ['productID' => $product->id],
                 $data['laptop']
             );
             Accessory::where('productID', $product->id)->delete();
-        } elseif ($data['id_type'] == 5 && $data['accessory']) {
+        } elseif ($data['id_type'] == 2 && $data['accessory']) {
             Accessory::updateOrCreate(
                 ['productID' => $product->id],
                 $data['accessory']

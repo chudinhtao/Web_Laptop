@@ -406,12 +406,7 @@
       const details = prod.laptop || prod.accessory || {};
       const specs =
         prod.id_type == 1
-          ? [
-              details.screenSpecs,
-              details.CPU,
-              details.RAM,
-              details.SSD,
-              details.GPU,
+          ? [ 
               details.des,
             ]
               .filter(Boolean)
@@ -491,7 +486,7 @@
 
       const laptopFields = document.getElementById("laptopFields");
       const accessoryFields = document.getElementById("accessoryFields");
-      if (product.id_type == 4) {
+      if (product.id_type == 1) {
         laptopFields.style.display = "block";
         accessoryFields.style.display = "none";
         document.getElementById("screenSpecs").value =
@@ -501,7 +496,7 @@
         document.getElementById("SSD").value = product.laptop?.SSD || "";
         document.getElementById("GPU").value = product.laptop?.GPU || "";
         document.getElementById("laptopDes").value = product.laptop?.des || "";
-      } else if (product.id_type == 5) {
+      } else if (product.id_type == 2) {
         laptopFields.style.display = "none";
         accessoryFields.style.display = "block";
         document.getElementById("accessoryDes").value =
@@ -540,7 +535,7 @@
       isActive: currentProductId ? undefined : 1, // Chỉ gửi isActive khi thêm mới
     };
 
-    if (data.id_type === 4) {
+    if (data.id_type === 1) {
       data.laptop = {
         screenSpecs: document.getElementById("screenSpecs").value || null,
         CPU: document.getElementById("CPU").value || null,
@@ -550,7 +545,7 @@
         des: document.getElementById("laptopDes").value || null,
       };
       data.accessory = null;
-    } else if (data.id_type === 5) {
+    } else if (data.id_type === 2) {
       data.laptop = null;
       data.accessory = {
         des: document.getElementById("accessoryDes").value || null,
@@ -669,8 +664,8 @@ async function deleteProduct(id) {
   document.getElementById("id_type").addEventListener("change", function () {
     const laptopFields = document.getElementById("laptopFields");
     const accessoryFields = document.getElementById("accessoryFields");
-    laptopFields.style.display = this.value == "4" ? "block" : "none";
-    accessoryFields.style.display = this.value == "5" ? "block" : "none";
+    laptopFields.style.display = this.value == "1" ? "block" : "none";
+    accessoryFields.style.display = this.value == "2" ? "block" : "none";
   });
 
   // Tải dữ liệu ban đầu
