@@ -44,9 +44,6 @@ Route::post('/upload', [UploadController::class, 'upload']);
 
 
 
-
-
-
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
 Route::get('/admin/orders', [OrderAdminController::class, 'index']);
@@ -98,13 +95,13 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
+//Loại sản phẩm
     Route::get('product_types', [ProductTypesController::class, 'index']);
     Route::post('product_types', [ProductTypesController::class, 'store']);
     Route::get('product_types/{id}', [ProductTypesController::class, 'show']);
     Route::put('product_types/{id}', [ProductTypesController::class, 'update']);
     Route::delete('product_types/{id}', [ProductTypesController::class, 'destroy']);
-    
+
 //thongke
     Route::get('/thongke', [ThongkeController::class, 'dashboard']);
 });
