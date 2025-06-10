@@ -54,29 +54,26 @@ class AuthController extends Controller
         ]);
     }
 
-    // public function register(Request $request)
-    // {
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users',
-    //         'password' => 'required|string|min:6|confirmed',
-    //         'phone' => 'nullable|string|max:20',
-    //         'address' => 'nullable|string|max:255',
-    //         'yearOfbirth' => 'nullable|integer',
-    //     ]);
+    public function updateMe(Request $request)
+    {
+        $user = JWTAuth::user();
 
-    //     $user = User::create([
-    //         'name' => $request->name,
-    //         'email' => $request->email,
-    //         'password' => bcrypt($request->password),
-    //         'role' => 'user',
-    //         'phone' => $request->phone,
-    //         'address' => $request->address,
-    //         'yearOfbirth' => $request->yearOfbirth,
-    //     ]);
+        $validated = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'yearOfbirth' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'password' => 'nullable|string|min:6',
+        ]);
 
-    //     $token = JWTAuth::fromUser($user);
+        if (isset($validated['password'])) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
 
-    //     return $this->respondWithToken($token);
-    // }
+        $user->update($validated);
+
+        return response()->json(['message' => 'Cập nhật thành công!', 'user' => $user]);
+    }
 }
