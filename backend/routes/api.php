@@ -86,6 +86,8 @@ Route::apiResource('products_types', ProductTypesController::class);
     Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
     Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
     Route::post('/buy', [Payment_OrderController::class, 'store']);
+
+    Route::put('userClient', [AuthController::class, 'updateMe']);
 });
 
 Route::middleware('jwt.auth')->group(function () {

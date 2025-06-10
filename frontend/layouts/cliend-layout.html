@@ -140,13 +140,31 @@
                 >3</span
               >
             </a>
-            <a
-              href="#"
-              class="p-2 text-gray-600 hover:text-primary-600 transition-all"
-              onclick="event.preventDefault()"
-            >
-              <i class="fas fa-user"></i>
-            </a>
+            <div class="relative group">
+              <a
+                href="#"
+                class="p-2 text-gray-600 hover:text-primary-600 transition-all"
+                onclick="event.preventDefault()"
+              >
+                <i class="fas fa-user"></i>
+              </a>
+              <div
+                class="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg border border-gray-200 z-50 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all"
+              >
+                <button
+                  onclick="showUserInfo()"
+                  class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                >
+                  Thông tin người dùng
+                </button>
+                <button
+                  onclick="logoutUser()"
+                  class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -350,15 +368,119 @@
         </div>
       </div>
     </footer>
-
     <script src="../js/layout.js"></script>
-    <script>
-      // Load trang mặc định
-      loadPage("../client/home.html");
-      function toggleSearch() {
-        const searchBar = document.getElementById("searchBar");
-        searchBar.classList.toggle("hidden");
-      }
+    <script type="module">
+        import { fetchWithTokenRetry } from '../js/authFetch.js';
+
+        let currentUser = null;
+
+        async function showUserInfo() {
+          document.getElementById('userModal').classList.remove('hidden');
+          const content = document.getElementById('userInfoContent');
+          content.innerHTML = '<div class="text-center text-gray-400">Đang tải...</div>';
+          try {
+            const res = await fetchWithTokenRetry('http://127.0.0.1:8000/api/user');
+            if (!res.ok) {
+              content.innerHTML = '<div class="text-red-500">Không lấy được thông tin user.</div>';
+              return;
+            }
+            const user = await res.json();
+            currentUser = user;
+            renderUserEditForm(user);
+          } catch (err) {
+            content.innerHTML = '<div class="text-red-500">Lỗi khi lấy thông tin user.</div>';
+          }
+        }
+
+        function renderUserEditForm(user) {
+          document.getElementById('userInfoContent').innerHTML = `
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Tên</label>
+              <input id="edit-name" type="text" class="w-full border rounded px-3 py-2" value="${user.name || ''}" required>
+            </div>
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Email</label>
+              <input id="edit-email" type="email" class="w-full border rounded px-3 py-2" value="${user.email || ''}" required disabled>
+            </div>
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Số điện thoại</label>
+              <input id="edit-phone" type="text" class="w-full border rounded px-3 py-2" value="${user.phone || ''}">
+            </div>
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Địa chỉ</label>
+              <input id="edit-address" type="text" class="w-full border rounded px-3 py-2" value="${user.address || ''}">
+            </div>
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Năm sinh</label>
+              <input id="edit-yearOfbirth" type="number" min="1900" max="2100" class="w-full border rounded px-3 py-2" value="${user.yearOfbirth || ''}">
+            </div>
+            <div class="mb-2">
+              <label class="block text-sm font-medium mb-1">Mật khẩu mới (nếu muốn đổi)</label>
+              <input id="edit-password" type="password" class="w-full border rounded px-3 py-2" minlength="6" placeholder="Để trống nếu không đổi">
+            </div>
+          `;
+        }
+
+        document.getElementById('userEditForm').onsubmit = async function(e) {
+          e.preventDefault();
+          if (!currentUser) return;
+          const data = {
+            name: document.getElementById('edit-name').value,
+            phone: document.getElementById('edit-phone').value,
+            address: document.getElementById('edit-address').value,
+            yearOfbirth: document.getElementById('edit-yearOfbirth').value,
+          };
+          const password = document.getElementById('edit-password').value;
+          if (password) data.password = password;
+
+          try {
+            const res = await fetchWithTokenRetry('http://127.0.0.1:8000/api/userClient', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+            if (res.ok) {
+              alert('Cập nhật thành công!');
+              closeUserDialog();
+            } else {
+              const err = await res.json();
+              alert(err.message || 'Cập nhật thất bại!');
+            }
+          } catch (err) {
+            alert('Có lỗi xảy ra!');
+          }
+        };
+
+        window.showUserInfo = showUserInfo;
+        window.closeUserDialog = function() {
+          document.getElementById('userModal').classList.add('hidden');
+        };
     </script>
+    <div id="userModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-sm mx-4">
+        <form id="userEditForm" class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h5 class="text-lg font-semibold" id="userModalLabel">Thông tin cá nhân</h5>
+            <button type="button" onclick="closeUserDialog()" class="text-gray-400 hover:text-red-500 text-2xl font-bold">&times;</button>
+          </div>
+          <div id="userInfoContent" class="text-gray-700 space-y-2">
+            <!-- Các trường sẽ được render ở đây -->
+            <div class="text-center text-gray-400">Đang tải...</div>
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button type="button" onclick="closeUserDialog()" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">Hủy</button>
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded">Lưu</button>
+          </div>
+        </form>
+      </div>
+    </div>
+     <script>
+          function logoutUser() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+              localStorage.removeItem('token');
+              window.location.href = '/frontend/layouts/login-layout.html';
+            }
+          }
+        </script>
   </body>
 </html>
