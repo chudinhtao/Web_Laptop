@@ -36,7 +36,104 @@
             background-color: #f8fafc;
         }
         
-       
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-confirmed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-shipped {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-delivered {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-unknown {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .search-input {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .search-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .filter-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .filter-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: #64748b;
+            transition: all 0.2s;
+            gap: 0.5rem;
+        }
+        
+        .back-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        
+        .view-btn {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .view-btn:hover {
+            color: #1d4ed8;
+        }
+        
+        .amount-cell {
+            font-weight: 600;
+            color: #059669;
+        }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -153,12 +250,15 @@
                 </div>
             </div>
         </div>
-                <!-- Sort Button -->
+        
+        <!-- Sort Button -->
         <div class="flex justify-end mb-2">
             <button id="sortBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200">
-                <i class="fas fa-sort mr-2"></i> Sắp xếp theo ngày đặt
+                <i class="fas fa-sort mr-2"></i> 
+                <span id="sortText">Sắp xếp: Mới nhất</span>
             </button>
         </div>
+        
         <!-- Orders Table -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
             <div class="overflow-x-auto">
@@ -202,9 +302,16 @@
                 </div>
             </div>
         </div>
-        
+    </div>
 
-    <script>
+    <script type="module">
+        // Biến toàn cục
+        var sortDesc = true; // true = mới nhất trước, false = cũ nhất trước
+        var lastSearch = '';
+        var lastStatus = 'ALL';
+        var ordersData = [];
+        import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
+
         // Add some interactive elements
         document.addEventListener('DOMContentLoaded', function() {
             // Highlight table row on hover
@@ -217,6 +324,7 @@
                     row.classList.remove('bg-gray-50');
                 });
             });
+            
             // Tooltip for action buttons
             const buttons = document.querySelectorAll('.action-btn');
             buttons.forEach(button => {
@@ -234,60 +342,42 @@
                 });
             });
 
+            // Sự kiện cho nút sắp xếp
+            document.getElementById('sortBtn').addEventListener('click', function() {
+                sortDesc = !sortDesc; // Đảo ngược thứ tự sắp xếp
+                updateSortButtonText();
+                sortAndRenderOrders();
+            });
+
             // Fetch orders from API and render table
-            fetch('http://localhost:8000/api/admin/orders')
+            fetchWithTokenRetry('http://localhost:8000/api/admin/orders')
                 .then(response => response.json())
                 .then(data => {
-                    const tbody = document.querySelector('tbody');
-                    tbody.innerHTML = '';
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach(order => {
-                            const tr = document.createElement('tr');
-                            tr.className = 'table-row-hover';
-                            // tr.onclick = () => window.location.href = `order-detail.html?id=${order.id}`;
-                            tr.innerHTML = `
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${order.id}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">${order.fullName || ''}</div>
-                                    <div class="text-sm text-gray-500">${order.address || ''}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.phone || ''}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm amount-cell">${order.totalAmount ? order.totalAmount.toLocaleString('vi-VN') + '₫' : ''}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.created_at ? new Date(order.created_at).toLocaleDateString('vi-VN') : ''}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="status-badge status-${getStatusClass(order.status)}">
-                                        ${getStatusText(order.status)}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    ${getStatusClass(order.status) === 'pending' ? `
-                                        <a class="confirm-btn mr-2 px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xác nhận đơn hàng #${order.id} không?');"
-                                           href="">
-                                           <i class="fas fa-check mr-1"></i> Xác nhận
-                                        </a>
-                                        <a class="cancel-btn px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
-                                           onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng #${order.id} không?');"
-                                           href="#">
-                                           <i class="fas fa-times mr-1"></i> Hủy
-                                        </a>
-                                        <a class="view-btn ml-2" href="order-detail.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
-                                    ` : `
-                                        <a class="view-btn" href="order-detail.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
-                                    `}
-                                </td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Không có đơn hàng nào.</td></tr>';
-                    }
+                    ordersData = Array.isArray(data) ? data : [];
+                    sortAndRenderOrders();
                 })
                 .catch(err => {
                     const tbody = document.querySelector('tbody');
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-400">Lỗi tải dữ liệu đơn hàng.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-red-400 text-lg">Lỗi tải dữ liệu đơn hàng.</td></tr>';
                 });
         });
+
+        // Cập nhật text của nút sắp xếp
+        function updateSortButtonText() {
+            const sortText = document.getElementById('sortText');
+            sortText.textContent = sortDesc ? 'Sắp xếp: Mới nhất' : 'Sắp xếp: Cũ nhất';
+        }
+
+        // Sắp xếp và render đơn hàng
+        function sortAndRenderOrders() {
+            // Sắp xếp theo ngày tạo
+            const sortedData = [...ordersData].sort((a, b) => {
+                const dateA = new Date(a.created_at || 0);
+                const dateB = new Date(b.created_at || 0);
+                return sortDesc ? dateB - dateA : dateA - dateB;
+            });
+            renderOrders(sortedData);
+        }
 
         function getStatusText(status) {
             switch ((status || '').toLowerCase()) {
@@ -299,6 +389,7 @@
                 default: return status || 'Không xác định';
             }
         }
+        
         function getStatusClass(status) {
             switch ((status || '').toLowerCase()) {
                 case 'pending': return 'pending';
@@ -310,22 +401,19 @@
             }
         }
 
-        let sortDesc = true;
-        let lastSearch = '';
-        let lastStatus = 'ALL';
-        let ordersData = [];
-
         // Cho phép click vào bất kỳ đâu trong form để focus vào input tìm kiếm
         document.getElementById('searchForm').addEventListener('click', function(e) {
             if (!e.target.closest('input,select,button')) {
                 document.getElementById('searchInput').focus();
             }
         });
+        
         // Giữ lại giá trị đã nhập/đã chọn sau khi lọc
         function setFormValues(search, status) {
             document.getElementById('searchInput').value = search || '';
             document.getElementById('statusSelect').value = status || 'ALL';
         }
+        
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const search = this.search.value.trim();
@@ -333,24 +421,25 @@
             lastSearch = search;
             lastStatus = status;
             setFormValues(search, status);
-            fetchOrders(search, status, sortDesc);
+            fetchOrders(search, status);
         });
+        
         // Khi tải lại dữ liệu, giữ lại giá trị filter
-        function fetchOrders(search = '', status = 'ALL', sortDesc = true) {
+        function fetchOrders(search = '', status = 'ALL') {
             setFormValues(search, status);
             let url = `http://localhost:8000/api/admin/orders?`;
             if (search) url += `search=${encodeURIComponent(search)}&`;
             if (status && status !== 'ALL') url += `status=${encodeURIComponent(status)}&`;
-            fetch(url)
+            
+            fetchWithTokenRetry(url)
                 .then(response => response.json())
                 .then(data => {
                     ordersData = Array.isArray(data) ? data : [];
-                    if (!sortDesc) ordersData.reverse();
-                    renderOrders(ordersData);
+                    sortAndRenderOrders();
                 })
                 .catch(err => {
                     const tbody = document.querySelector('tbody');
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-red-400">Lỗi tải dữ liệu đơn hàng.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-red-400 text-lg">Lỗi tải dữ liệu đơn hàng.</td></tr>';
                 });
         }
 
@@ -364,12 +453,15 @@
                 else if (status === 'confirmed') confirmed++;
                 else if (status === 'cancelled') cancelled++;
             });
+            
             document.getElementById('total-orders').textContent = total;
             document.getElementById('pending-orders').textContent = pending;
             document.getElementById('confirmed-orders').textContent = confirmed;
             document.getElementById('cancelled-orders').textContent = cancelled;
+            
             const tbody = document.querySelector('tbody');
             tbody.innerHTML = '';
+            
             if (Array.isArray(data) && data.length > 0) {
                 data.forEach(order => {
                     const tr = document.createElement('tr');
@@ -400,58 +492,76 @@
                                    data-id="${order.id}">
                                    <i class="fas fa-times mr-1"></i> Hủy
                                 </a>
-                                <a class="view-btn ml-2" href="order-detail.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                                <a class="view-btn ml-2" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
                             ` : `
-                                <a class="view-btn" href="order-detail.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                                <a class="view-btn" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
                             `}
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
+                
                 // Gán sự kiện cho nút xác nhận/hủy
                 tbody.querySelectorAll('.confirm-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
                         const id = this.getAttribute('data-id');
                         if (confirm(`Bạn có chắc chắn muốn xác nhận đơn hàng #${id} không?`)) {
-                            updateOrderStatus(id, 'Confirmed');
+                            updateOrderStatus(id, 'confirmed'); 
                         }
                     });
                 });
+                
                 tbody.querySelectorAll('.cancel-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
                         const id = this.getAttribute('data-id');
                         if (confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${id} không?`)) {
-                            updateOrderStatus(id, 'Cancelled');
+                            updateOrderStatus(id, 'cancelled'); 
                         }
                     });
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-gray-400">Không có đơn hàng nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400 text-lg">Không có đơn hàng nào.</td></tr>';
             }
         }
 
         function updateOrderStatus(id, status) {
-            fetch(`http://localhost:8000/api/admin/orders/${id}/status`, {
+            // Hiển thị loading
+            const loadingText = status === 'confirmed' ? 'Đang xác nhận...' : 'Đang hủy...';
+            
+            fetchWithTokenRetry(`http://localhost:8000/api/admin/orders/${id}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({ status })
+                body: JSON.stringify({ status: status.toLowerCase() })
             })
-            .then(res => res.json())
-            .then(res => {
-                if (res.success) {
-                    alert('Cập nhật trạng thái thành công!');
-                    fetchOrders(lastSearch, lastStatus, sortDesc);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response:', data); // Debug log
+                
+                if (data.success) {
+                    alert(data.message || 'Cập nhật trạng thái thành công!');
+                    // Reload orders với filter hiện tại
+                    fetchOrders(lastSearch, lastStatus);
                 } else {
-                    alert(res.error || 'Có lỗi xảy ra!');
+                    alert('Lỗi: ' + (data.error || 'Không thể cập nhật trạng thái'));
                 }
             })
-            .catch(() => alert('Có lỗi xảy ra!'));
+            .catch(error => {
+                console.error('Error:', error); // Debug log
+                alert('Có lỗi xảy ra khi cập nhật: ' + error.message);
+            });
         }
-   // Tự động submit form khi chọn trạng thái
+        
+        // Tự động submit form khi chọn trạng thái
         document.getElementById('statusSelect').addEventListener('change', function() {
             document.getElementById('searchForm').dispatchEvent(new Event('submit'));
         });
