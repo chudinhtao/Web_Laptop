@@ -102,13 +102,13 @@
             <a
               href="#"
               class="text-gray-600 hover:text-primary-600 transition-all"
-              onclick="event.preventDefault()"
+            onclick="loadPage('../client/khuyenmai.html')"
               >Khuyến mãi</a
             >
             <a
               href="#"
               class="text-gray-600 hover:text-primary-600 transition-all"
-              onclick="event.preventDefault()"
+             onclick="loadPage('../client/tintuc.html')"
               >Tin tức</a
             >
           </nav>
@@ -128,10 +128,8 @@
               onclick="loadPage('../client/cart.html')"
             >
               <i class="fas fa-shopping-cart"></i>
-              <span
-                class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                >3</span
-              >
+            
+              
             </a>
             <a
               id="order-next"
@@ -139,10 +137,8 @@
               class="p-2 text-gray-600 hover:text-primary-600 transition-all relative"
             >
               <i class="bi bi-box2-fill"></i>
-              <span
-                class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                >3</span
-              >
+             
+              
             </a>
             <div class="relative group">
               <a
@@ -159,7 +155,7 @@
                   onclick="showUserInfo()"
                   class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-700"
                 >
-                  Thông tin người dùng
+                  Thông tin
                 </button>
                 <button
                   onclick="logoutUser()"
@@ -519,6 +515,12 @@
       </div>
     </div>
     <script>
+        loadPage('../client/home.html');
+          function toggleSearch() {
+            const searchBar = document.getElementById('searchBar');
+            searchBar.classList.toggle('hidden');
+        }
+
       function logoutUser() {
         if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
           localStorage.removeItem("token");
