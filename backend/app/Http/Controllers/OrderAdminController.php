@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\OrderAdmin;
-use App\Models\Oder_detail;
+use App\Models\Order_detail; // Sửa lại đúng tên model
 use App\Models\Product;
+use App\Models\Order; // Thêm import cho model Order
 
 
 class OrderAdminController extends Controller
@@ -92,7 +93,7 @@ class OrderAdminController extends Controller
             // Nếu xác nhận đơn hàng, trừ số lượng sản phẩm
             if ($enumStatus === 'Confirmed') {
                 // Lấy chi tiết đơn hàng từ bảng Order_detail
-                $orderDetails = Order_detail::where('orderID', $id)->get();
+                $orderDetails = Order_detail::where('orderID', $id)->get(); // Sử dụng đúng model
                 foreach ($orderDetails as $detail) {
                     $product = Product::find($detail->productID);
                     if ($product) {

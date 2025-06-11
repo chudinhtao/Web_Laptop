@@ -82,8 +82,8 @@ class BrandsController extends Controller
 
         foreach ($products as $product) {
             Cart::where('productID', $product->id)->delete();
-
             $product->isActive = 0;
+            $product->id_branch = null; // Đúng tên trường khóa ngoại
             $product->save();
         }
             $brand->delete();
