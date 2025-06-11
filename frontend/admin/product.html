@@ -355,7 +355,10 @@
       const typeFilter = document.getElementById("typeFilter");
       typeSelect.innerHTML = '<option value="">Chọn loại</option>';
       typeFilter.innerHTML = '<option value="">Tất cả loại</option>';
-      types.data.forEach((type) => {
+      const allowedTypes = ['Laptop', 'Phụ kiện'];
+      types.data
+      .filter(type => allowedTypes.includes(type.typeName))
+      .forEach((type) => {
         const option = document.createElement("option");
         option.value = type.id;
         option.textContent = type.typeName;
