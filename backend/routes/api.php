@@ -42,9 +42,7 @@ Route::post('/upload', [UploadController::class, 'upload']);
 
 
 
-Route::apiResource('product_types', ProductTypesController::class);
-Route::apiResource('products', ProductController::class);
-// Route::apiResource('brands', BrandsController::class);
+
 
 //Quản lý đơn hàng
 //Admin (tất cả đơn hàng) - ĐẶT TRƯỚC routes có tham số
@@ -68,6 +66,13 @@ Route::middleware(['jwt.auth'])->group(function () {
 
 //Giỏ hàng + hien thi Tạo
 Route::middleware('jwt.auth')->group(function () {
+    //products
+
+Route::apiResource('products', ProductController::class);
+Route::apiResource('brands', App\Http\Controllers\Api\BrandsController::class);
+Route::apiResource('products_types', ProductTypesController::class);
+
+//
     Route::get('/orders/user', [OrderController::class, 'getOrderByUser']);
     Route::get('/orders/{id}', [OrderController::class, 'getOrderDetailByOrderId']);
     //Hủy đơn hàng 
@@ -81,6 +86,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('/cart/{cartId}', [CartController::class, 'updateCart']);
     Route::delete('/cart/{cartId}', [CartController::class, 'deleteCart']);
     Route::post('/buy', [Payment_OrderController::class, 'store']);
+
+    Route::put('userClient', [AuthController::class, 'updateMe']);
 });
 
 Route::middleware('jwt.auth')->group(function () {
