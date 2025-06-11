@@ -344,7 +344,7 @@
   async function loadFilters() {
     try {
       const [typesRes, brandsRes] = await Promise.all([
-        fetchWithTokenRetry("http://127.0.0.1:8000/api/products_types"),
+        fetchWithTokenRetry("http://127.0.0.1:8000/api/product_types"),
         fetchWithTokenRetry("http://127.0.0.1:8000/api/brands"),
       ]);
       if (!typesRes.ok || !brandsRes.ok) throw new Error("Lỗi khi tải bộ lọc");

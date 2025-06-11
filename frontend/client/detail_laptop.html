@@ -1,4 +1,4 @@
-<main class="container mx-auto px-4 py-8">
+<main id="target" class="container mx-auto px-4 py-8">
   <div
     class="bg-white rounded-xl shadow-md overflow-hidden p-6 md:p-8 lg:flex gap-8"
   >
@@ -99,7 +99,10 @@
     </div>
   </div>
 </main>
-<script type="module">
+
+<script type="module">  
+       document.getElementById('target')?.scrollIntoView({ behavior: 'smooth' });
+
    import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
 
   (() => {
