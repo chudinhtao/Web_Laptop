@@ -153,6 +153,29 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        
+        /* Đảm bảo nút lọc luôn hiển thị rõ ràng */
+        .filter-select, .search-input, button[type="submit"] {
+            min-width: 120px;
+            min-height: 44px;
+            font-size: 1rem;
+            box-shadow: none;
+            outline: none;
+        }
+        button[type="submit"] {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            background-color: #22c55e;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button[type="submit"]:hover {
+            background-color: #16a34a;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -195,6 +218,12 @@
                         <option value="Shipped">Đang giao hàng</option>
                         <option value="Delivered">Đã giao hàng</option>
                         <option value="Cancelled">Đã hủy</option>
+                    </select>
+                    <select name="time" id="timeSelect" class="filter-select">
+                        <option value="ALL">Tất cả thời gian</option>
+                        <option value="today">Hôm nay</option>
+                        <option value="last_7_days">7 ngày qua</option>
+                        <option value="last_30_days">30 ngày qua</option>
                     </select>
                     <button type="submit" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg transition-colors duration-200">
                         <i class="fas fa-filter mr-2"></i> Lọc
@@ -251,14 +280,6 @@
             </div>
         </div>
         
-        <!-- Sort Button -->
-        <div class="flex justify-end mb-2">
-            <button id="sortBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200">
-                <i class="fas fa-sort mr-2"></i> 
-                <span id="sortText">Sắp xếp: Mới nhất</span>
-            </button>
-        </div>
-        
         <!-- Orders Table -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
             <div class="overflow-x-auto">
@@ -306,9 +327,9 @@
 
     <script type="module">
         // Biến toàn cục
-        var sortDesc = true; // true = mới nhất trước, false = cũ nhất trước
         var lastSearch = '';
         var lastStatus = 'ALL';
+        var lastTime = 'ALL';
         var ordersData = [];
         import { fetchWithTokenRetry } from 'http://127.0.0.1:5501/frontend/js/authFetch.js';
 
@@ -342,42 +363,18 @@
                 });
             });
 
-            // Sự kiện cho nút sắp xếp
-            document.getElementById('sortBtn').addEventListener('click', function() {
-                sortDesc = !sortDesc; // Đảo ngược thứ tự sắp xếp
-                updateSortButtonText();
-                sortAndRenderOrders();
-            });
-
             // Fetch orders from API and render table
             fetchWithTokenRetry('http://localhost:8000/api/admin/orders')
                 .then(response => response.json())
                 .then(data => {
                     ordersData = Array.isArray(data) ? data : [];
-                    sortAndRenderOrders();
+                    renderOrders(ordersData);
                 })
                 .catch(err => {
                     const tbody = document.querySelector('tbody');
                     tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-red-400 text-lg">Lỗi tải dữ liệu đơn hàng.</td></tr>';
                 });
         });
-
-        // Cập nhật text của nút sắp xếp
-        function updateSortButtonText() {
-            const sortText = document.getElementById('sortText');
-            sortText.textContent = sortDesc ? 'Sắp xếp: Mới nhất' : 'Sắp xếp: Cũ nhất';
-        }
-
-        // Sắp xếp và render đơn hàng
-        function sortAndRenderOrders() {
-            // Sắp xếp theo ngày tạo
-            const sortedData = [...ordersData].sort((a, b) => {
-                const dateA = new Date(a.created_at || 0);
-                const dateB = new Date(b.created_at || 0);
-                return sortDesc ? dateB - dateA : dateA - dateB;
-            });
-            renderOrders(sortedData);
-        }
 
         function getStatusText(status) {
             switch ((status || '').toLowerCase()) {
@@ -409,33 +406,37 @@
         });
         
         // Giữ lại giá trị đã nhập/đã chọn sau khi lọc
-        function setFormValues(search, status) {
+        function setFormValues(search, status, time) {
             document.getElementById('searchInput').value = search || '';
             document.getElementById('statusSelect').value = status || 'ALL';
+            document.getElementById('timeSelect').value = time || 'ALL';
         }
         
         document.getElementById('searchForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const search = this.search.value.trim();
             const status = this.status.value;
+            const time = this.time.value;
             lastSearch = search;
             lastStatus = status;
-            setFormValues(search, status);
-            fetchOrders(search, status);
+            lastTime = time;
+            setFormValues(search, status, time);
+            fetchOrders(search, status, time);
         });
         
         // Khi tải lại dữ liệu, giữ lại giá trị filter
-        function fetchOrders(search = '', status = 'ALL') {
-            setFormValues(search, status);
+        function fetchOrders(search = '', status = 'ALL', time = 'ALL') {
+            setFormValues(search, status, time);
             let url = `http://localhost:8000/api/admin/orders?`;
             if (search) url += `search=${encodeURIComponent(search)}&`;
             if (status && status !== 'ALL') url += `status=${encodeURIComponent(status)}&`;
+            if (time && time !== 'ALL') url += `time=${encodeURIComponent(time)}&`;
             
             fetchWithTokenRetry(url)
                 .then(response => response.json())
                 .then(data => {
                     ordersData = Array.isArray(data) ? data : [];
-                    sortAndRenderOrders();
+                    renderOrders(ordersData);
                 })
                 .catch(err => {
                     const tbody = document.querySelector('tbody');
@@ -450,7 +451,7 @@
             data.forEach(order => {
                 const status = (order.status || '').toLowerCase();
                 if (status === 'pending') pending++;
-                else if (status === 'confirmed') confirmed++;
+                else if (status === 'confirmed' || status === 'shipped' || status === 'delivered') confirmed++;
                 else if (status === 'cancelled') cancelled++;
             });
             
@@ -466,6 +467,45 @@
                 data.forEach(order => {
                     const tr = document.createElement('tr');
                     tr.className = 'table-row-hover';
+                    let actionButtons = '';
+                    const statusClass = getStatusClass(order.status);
+                    if (statusClass === 'pending') {
+                        actionButtons = `
+                            <a class="confirm-btn mr-2 px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
+                               href="#"
+                               data-id="${order.id}">
+                               <i class="fas fa-check mr-1"></i> Xác nhận
+                            </a>
+                            <a class="cancel-btn px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
+                               href="#"
+                               data-id="${order.id}">
+                               <i class="fas fa-times mr-1"></i> Hủy
+                            </a>
+                            <a class="view-btn ml-2" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                        `;
+                    } else if (statusClass === 'confirmed') {
+                        actionButtons = `
+                            <a class="next-status-btn mr-2 px-3 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white transition-colors duration-200"
+                               href="#"
+                               data-id="${order.id}" data-next="shipped">
+                               <i class="fas fa-truck mr-1"></i> Chuyển sang Đang giao hàng
+                            </a>
+                            <a class="view-btn" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                        `;
+                    } else if (statusClass === 'shipped') {
+                        actionButtons = `
+                            <a class="next-status-btn mr-2 px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
+                               href="#"
+                               data-id="${order.id}" data-next="delivered">
+                               <i class="fas fa-check-double mr-1"></i> Đã giao hàng
+                            </a>
+                            <a class="view-btn" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                        `;
+                    } else {
+                        actionButtons = `
+                            <a class="view-btn" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
+                        `;
+                    }
                     tr.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${order.id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -476,31 +516,16 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm amount-cell">${order.totalAmount ? order.totalAmount.toLocaleString('vi-VN') + '₫' : ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.created_at ? new Date(order.created_at).toLocaleDateString('vi-VN') : ''}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="status-badge status-${getStatusClass(order.status)}">
+                            <span class="status-badge status-${statusClass}">
                                 ${getStatusText(order.status)}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            ${getStatusClass(order.status) === 'pending' ? `
-                                <a class="confirm-btn mr-2 px-3 py-1 rounded bg-green-500 hover:bg-green-600 text-white transition-colors duration-200"
-                                   href="#"
-                                   data-id="${order.id}">
-                                   <i class="fas fa-check mr-1"></i> Xác nhận
-                                </a>
-                                <a class="cancel-btn px-3 py-1 rounded bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
-                                   href="#"
-                                   data-id="${order.id}">
-                                   <i class="fas fa-times mr-1"></i> Hủy
-                                </a>
-                                <a class="view-btn ml-2" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
-                            ` : `
-                                <a class="view-btn" href="../admin/orderDetails.html?id=${order.id}"><i class="fas fa-eye mr-1"></i> </a>
-                            `}
+                            ${actionButtons}
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-                
                 // Gán sự kiện cho nút xác nhận/hủy
                 tbody.querySelectorAll('.confirm-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
@@ -511,13 +536,29 @@
                         }
                     });
                 });
-                
                 tbody.querySelectorAll('.cancel-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.preventDefault();
                         const id = this.getAttribute('data-id');
                         if (confirm(`Bạn có chắc chắn muốn hủy đơn hàng #${id} không?`)) {
                             updateOrderStatus(id, 'cancelled'); 
+                        }
+                    });
+                });
+                // Gán sự kiện cho nút chuyển trạng thái tiếp theo
+                tbody.querySelectorAll('.next-status-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const id = this.getAttribute('data-id');
+                        const nextStatus = this.getAttribute('data-next');
+                        let confirmMsg = '';
+                        if (nextStatus === 'shipped') {
+                            confirmMsg = `Chuyển đơn hàng #${id} sang trạng thái Đang giao hàng?`;
+                        } else if (nextStatus === 'delivered') {
+                            confirmMsg = `Chuyển đơn hàng #${id} sang trạng thái Đã giao hàng?`;
+                        }
+                        if (confirm(confirmMsg)) {
+                            updateOrderStatus(id, nextStatus);
                         }
                     });
                 });
@@ -546,11 +587,10 @@
             })
             .then(data => {
                 console.log('Response:', data); // Debug log
-                
                 if (data.success) {
                     alert(data.message || 'Cập nhật trạng thái thành công!');
                     // Reload orders với filter hiện tại
-                    fetchOrders(lastSearch, lastStatus);
+                    fetchOrders(lastSearch, lastStatus, lastTime);
                 } else {
                     alert('Lỗi: ' + (data.error || 'Không thể cập nhật trạng thái'));
                 }
@@ -563,6 +603,9 @@
         
         // Tự động submit form khi chọn trạng thái
         document.getElementById('statusSelect').addEventListener('change', function() {
+            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+        });
+        document.getElementById('timeSelect').addEventListener('change', function() {
             document.getElementById('searchForm').dispatchEvent(new Event('submit'));
         });
 

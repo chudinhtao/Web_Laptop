@@ -7,6 +7,7 @@ use App\Models\OrderAdmin;
 use App\Models\Order_detail; // Sửa lại đúng tên model
 use App\Models\Product;
 use App\Models\Order; // Thêm import cho model Order
+use Carbon\Carbon;
 
 
 class OrderAdminController extends Controller
@@ -14,8 +15,6 @@ class OrderAdminController extends Controller
     // API: Lấy danh sách đơn hàng cho admin
     public function index(Request $request)
     {
-
-
         $query = OrderAdmin::query();
         
         if ($request->has('status') && $request->status !== 'ALL') {
@@ -42,7 +41,17 @@ class OrderAdminController extends Controller
                   ->orWhere('address', 'like', "%$search%");
             });
         }
-        
+        // Lọc theo mốc thời gian
+        if ($request->has('time') && $request->time && $request->time !== 'ALL') {
+            $now = Carbon::now();
+            if ($request->time === 'today') {
+                $query->whereDate('created_at', $now->toDateString());
+            } elseif ($request->time === 'last_7_days') {
+                $query->whereDate('created_at', '>=', $now->copy()->subDays(6)->toDateString());
+            } elseif ($request->time === 'last_30_days') {
+                $query->whereDate('created_at', '>=', $now->copy()->subDays(29)->toDateString());
+            }
+        }
         $orders = $query->orderByDesc('created_at')->get();
         
         // Thêm trường status cho từng order để đồng bộ với frontend
